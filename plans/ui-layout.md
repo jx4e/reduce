@@ -34,10 +34,10 @@ The project is a blank slate (only a README exists). This plan defines the UI la
 ```
 
 **Notes:**
-- API key stored in localStorage, accessible via a settings popover/modal in the nav
+- Nav shows user avatar/account menu when logged in, or sign in link when logged out
 - Mode toggle visible before generation (affects prompt style)
 - Multiple files can be uploaded and combined into one guide
-- Recent guides shown as cards (title, date, mode badge), sourced from IndexedDB
+- Recent guides shown as cards (title, date, mode badge), sourced from server (Postgres)
 
 ---
 
@@ -122,11 +122,7 @@ Every rendered element (heading, paragraph, formula, code block) is clickable:
 
 ## Stack
 
-- **Next.js** (App Router) — routing and pages
-- **Tailwind CSS v4** — styling
-- **KaTeX** — math rendering for formula elements
-- **Anthropic JS SDK** — AI calls (client-side, BYOK)
-- **IndexedDB** — local storage for guides
+See `plans/architecture.md` for the full stack and infrastructure decisions.
 
 ---
 
@@ -162,5 +158,5 @@ components/
 | Contextual question flow | Popover submit pre-fills ask bar with element context |
 | Generation UX | Animated stepper: Parsing → Analyzing → Writing → Rendering |
 | Multi-upload | Yes — multiple files combined per guide |
-| API key storage | localStorage, set via modal in nav |
-| Data persistence | IndexedDB (local, no server) |
+| Auth | Nav shows account menu (logged in) or sign in link (logged out) |
+| Data persistence | Server-side — Postgres via API routes |
