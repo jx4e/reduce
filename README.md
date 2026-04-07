@@ -3,8 +3,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/jakegaunt/reduce/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="license"></a>
-  <a href="https://github.com/jakegaunt/reduce/stargazers"><img src="https://img.shields.io/github/stars/jakegaunt/reduce" alt="stars"></a>
+  <a href="https://github.com/jx4e/reduce/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="license"></a>
+  <a href="https://github.com/jx4e/reduce/stargazers"><img src="https://img.shields.io/github/stars/jx4e/reduce" alt="stars"></a>
   <img src="https://img.shields.io/badge/BYOK-bring%20your%20own%20key-green" alt="byok">
 </p>
 
