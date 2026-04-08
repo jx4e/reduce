@@ -36,8 +36,11 @@ export default function GuideElement({ element, onAsk }: GuideElementProps) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => { setHovered(false) }}
     >
-      {/* Content */}
-      <div className="py-1">
+      {/* Content — highlighted when popover is open */}
+      <div
+        className="py-1 rounded transition-colors"
+        style={popoverOpen ? { background: 'rgba(99,102,241,0.12)', outline: '1px solid var(--accent)', outlineOffset: '2px' } : {}}
+      >
         <ElementContent element={element} />
       </div>
 
@@ -63,9 +66,6 @@ export default function GuideElement({ element, onAsk }: GuideElementProps) {
           className="absolute left-0 right-0 z-20 mt-1 rounded-lg border p-3 shadow-lg"
           style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
         >
-          <p className="mb-2 text-xs truncate" style={{ color: 'var(--muted)' }}>
-            Ask about: &ldquo;{element.content.slice(0, 60)}{element.content.length > 60 ? '…' : ''}&rdquo;
-          </p>
           <form onSubmit={handleSubmit} className="flex gap-2">
             <input
               ref={inputRef}
