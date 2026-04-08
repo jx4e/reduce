@@ -62,12 +62,12 @@ export default function GuideElement({ element, onAsk }: GuideElementProps) {
       {popoverOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center px-4"
-          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(6px)' }}
+          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(6px)', animation: 'fade-in 0.15s ease-out' }}
           onClick={e => { if (e.target === e.currentTarget) setPopoverOpen(false) }}
         >
           <div
             className="w-full max-w-lg rounded-2xl border shadow-2xl overflow-hidden"
-            style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
+            style={{ background: 'var(--surface)', borderColor: 'var(--border)', animation: 'modal-in 0.2s cubic-bezier(0.34,1.56,0.64,1)' }}
           >
             {/* Element preview */}
             <div className="px-6 pt-6 pb-4" style={{ borderBottom: '1px solid var(--border)' }}>
