@@ -91,7 +91,7 @@ export default function GuideElement({ element, messages, note, onAsk, onNoteCha
             style={{ background: 'var(--surface)', borderColor: 'var(--border)', maxHeight: '80vh', animation: 'modal-in 0.2s cubic-bezier(0.34,1.56,0.64,1)' }}
           >
             {/* Element preview */}
-            <div className="px-6 pt-5 pb-4 shrink-0 border-b" style={{ borderColor: 'var(--border)' }}>
+            <div className="px-6 pt-5 pb-4 border-b overflow-y-auto" style={{ borderColor: 'var(--border)', maxHeight: '40%' }}>
               <ElementContent element={element} />
             </div>
 
