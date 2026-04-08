@@ -7,7 +7,7 @@ export interface GuideCardData {
   mode: GuideMode
 }
 
-export type ContentElementType = 'heading' | 'paragraph' | 'formula' | 'code'
+export type ContentElementType = 'heading' | 'paragraph' | 'formula' | 'code' | 'image'
 
 export interface ContentElement {
   id: string
@@ -15,6 +15,7 @@ export interface ContentElement {
   content: string
   level?: 2 | 3           // heading level
   language?: string        // code block language
+  src?: string             // image URL
 }
 
 export interface GuideSection {

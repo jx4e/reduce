@@ -23,6 +23,7 @@ const MOCK_GUIDE: Guide = {
         { id: 'e3', type: 'heading', level: 3, content: "Gauss's Law for Electricity" },
         { id: 'e4', type: 'formula', content: '\\nabla \\cdot \\mathbf{E} = \\frac{\\rho}{\\epsilon_0}' },
         { id: 'e5', type: 'paragraph', content: 'The electric flux through any closed surface is proportional to the enclosed electric charge.' },
+        { id: 'e5b', type: 'image', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/VFPt_charges_plus_minus_thumb.svg/320px-VFPt_charges_plus_minus_thumb.svg.png', content: 'Electric field lines between opposite charges' },
         { id: 'e6', type: 'heading', level: 3, content: "Faraday's Law" },
         { id: 'e7', type: 'formula', content: '\\nabla \\times \\mathbf{E} = -\\frac{\\partial \\mathbf{B}}{\\partial t}' },
         { id: 'e8', type: 'paragraph', content: 'A changing magnetic field induces an electric field.' },
