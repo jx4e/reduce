@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import GuideElement from '@/components/GuideElement'
 import AskBar from '@/components/AskBar'
@@ -12,6 +12,39 @@ function nextId() { return `msg-${++msgIdCounter}` }
 export default function GuideView({ guide }: { guide: Guide }) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [contextElement, setContextElement] = useState<ContentElement | undefined>()
+  const [activeSection, setActiveSection] = useState<string>(guide.sections[0]?.id ?? '')
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  // Track which section is in view using IntersectionObserver on the scroll container
+  useEffect(() => {
+    const scrollEl = scrollRef.current
+    if (!scrollEl) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Pick the topmost intersecting section
+        const visible = entries
+          .filter(e => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
+        if (visible.length > 0) {
+          setActiveSection(visible[0].target.id.replace('section-', ''))
+        }
+      },
+      {
+        root: scrollEl,
+        // Fire when top 40% of scroll area is crossed — feels responsive without being jumpy
+        rootMargin: '0px 0px -60% 0px',
+        threshold: 0,
+      }
+    )
+
+    guide.sections.forEach(section => {
+      const el = scrollEl.querySelector(`#section-${section.id}`)
+      if (el) observer.observe(el)
+    })
+
+    return () => observer.disconnect()
+  }, [guide.sections])
 
   function handleAsk(element: ContentElement, question: string) {
     handleSend(question, element)
@@ -46,29 +79,38 @@ export default function GuideView({ guide }: { guide: Guide }) {
         </Link>
       </div>
 
-      {/* Main content area */}
+      {/* Main content area — overflow-hidden so only the content div scrolls */}
       <div className="flex flex-1 overflow-hidden">
-        {/* TOC Sidebar */}
-        <aside className="hidden md:flex w-52 shrink-0 flex-col gap-1 border-r px-4 py-6 overflow-y-auto sticky top-14"
-               style={{ borderColor: 'var(--border)', maxHeight: 'calc(100vh - 3.5rem - 2.5rem)' }}>
+        {/* TOC Sidebar — fills the full height of the flex container, stays pinned */}
+        <aside
+          className="hidden md:flex w-52 shrink-0 flex-col gap-1 border-r px-4 py-6 overflow-y-auto"
+          style={{ borderColor: 'var(--border)' }}
+        >
           <p className="text-xs font-semibold uppercase tracking-widest mb-3"
              style={{ color: 'var(--muted)' }}>
             Contents
           </p>
-          {guide.sections.map((section, i) => (
-            <a
-              key={section.id}
-              href={`#section-${section.id}`}
-              className="text-xs py-1 transition-colors hover:opacity-80"
-              style={{ color: 'var(--muted)' }}
-            >
-              {i + 1}. {section.heading}
-            </a>
-          ))}
+          {guide.sections.map((section, i) => {
+            const isActive = activeSection === section.id
+            return (
+              <a
+                key={section.id}
+                href={`#section-${section.id}`}
+                className="text-xs py-1.5 px-2 rounded transition-colors"
+                style={{
+                  color: isActive ? 'var(--foreground)' : 'var(--muted)',
+                  fontWeight: isActive ? '600' : '400',
+                  background: isActive ? 'var(--border)' : 'transparent',
+                }}
+              >
+                {i + 1}. {section.heading}
+              </a>
+            )
+          })}
         </aside>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 pb-4">
+        {/* Scrollable content — ref used by IntersectionObserver */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6 pb-4">
           <div className="max-w-2xl mx-auto flex flex-col gap-8">
             {guide.sections.map(section => (
               <section key={section.id} id={`section-${section.id}`}>
