@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import katex from 'katex'
 import type { ContentElement } from '@/types/guide'
 
 interface GuideElementProps {
@@ -108,12 +109,7 @@ function ElementContent({ element }: { element: ContentElement }) {
     case 'paragraph':
       return <p className="text-sm leading-7" style={{ color: 'var(--foreground)' }}>{element.content}</p>
     case 'formula':
-      return (
-        <div className="my-3 rounded-md px-4 py-3 font-mono text-sm"
-             style={{ background: 'var(--surface)', borderLeft: '3px solid var(--accent)', color: 'var(--foreground)' }}>
-          $$ {element.content} $$
-        </div>
-      )
+      return <FormulaBlock content={element.content} />
     case 'code':
       return (
         <pre className="my-3 overflow-x-auto rounded-md px-4 py-3 text-sm"
@@ -122,4 +118,20 @@ function ElementContent({ element }: { element: ContentElement }) {
         </pre>
       )
   }
+}
+
+function FormulaBlock({ content }: { content: string }) {
+  let html: string
+  try {
+    html = katex.renderToString(content, { displayMode: true, throwOnError: false })
+  } catch {
+    html = content
+  }
+  return (
+    <div
+      className="my-3 overflow-x-auto rounded-md px-4 py-3"
+      style={{ background: 'var(--surface)', borderLeft: '3px solid var(--accent)' }}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  )
 }
