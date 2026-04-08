@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import katex from 'katex'
+import hljs from 'highlight.js'
 import type { ContentElement } from '@/types/guide'
 
 interface GuideElementProps {
@@ -111,13 +112,28 @@ function ElementContent({ element }: { element: ContentElement }) {
     case 'formula':
       return <FormulaBlock content={element.content} />
     case 'code':
-      return (
-        <pre className="my-3 overflow-x-auto rounded-md px-4 py-3 text-sm"
-             style={{ background: 'var(--surface)', color: 'var(--foreground)' }}>
-          <code>{element.content}</code>
-        </pre>
-      )
+      return <CodeBlock content={element.content} language={element.language} />
   }
+}
+
+function CodeBlock({ content, language }: { content: string; language?: string }) {
+  let html: string
+  try {
+    html = language && hljs.getLanguage(language)
+      ? hljs.highlight(content, { language }).value
+      : hljs.highlightAuto(content).value
+  } catch {
+    html = content
+  }
+  return (
+    <pre className="my-3 overflow-x-auto rounded-md text-sm" style={{ background: 'var(--surface)' }}>
+      <code
+        className={language ? `language-${language}` : ''}
+        style={{ display: 'block', padding: '0.75rem 1rem' }}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    </pre>
+  )
 }
 
 function FormulaBlock({ content }: { content: string }) {
