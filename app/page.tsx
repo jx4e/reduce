@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import UploadZone from '@/components/UploadZone'
 import GuideCard from '@/components/GuideCard'
 import type { GuideCardData, GuideMode } from '@/types/guide'
+import { setPending } from '@/lib/pendingGeneration'
 
 const MOCK_GUIDES: GuideCardData[] = [
   { id: '1', title: 'Electromagnetism — Maxwell\'s Equations', createdAt: 'Apr 5, 2026', mode: 'math-cs' },
@@ -19,6 +20,7 @@ export default function HomePage() {
 
   function handleGenerate() {
     if (files.length === 0) return
+    setPending({ files, mode })
     router.push('/generate')
   }
 
