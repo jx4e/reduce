@@ -23,8 +23,8 @@ export default function GuideElement({ element, onAsk }: GuideElementProps) {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!question.trim()) return
-    onAsk(element, question.trim())
+    const text = question.trim() || 'What does this mean?'
+    onAsk(element, text)
     setQuestion('')
     setPopoverOpen(false)
   }
