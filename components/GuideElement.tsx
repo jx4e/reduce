@@ -1,0 +1,125 @@
+'use client'
+
+import { useState, useRef } from 'react'
+import type { ContentElement } from '@/types/guide'
+
+interface GuideElementProps {
+  element: ContentElement
+  onAsk: (element: ContentElement, question: string) => void
+}
+
+export default function GuideElement({ element, onAsk }: GuideElementProps) {
+  const [hovered, setHovered] = useState(false)
+  const [popoverOpen, setPopoverOpen] = useState(false)
+  const [question, setQuestion] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  function openPopover() {
+    setPopoverOpen(true)
+    setTimeout(() => inputRef.current?.focus(), 50)
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!question.trim()) return
+    onAsk(element, question.trim())
+    setQuestion('')
+    setPopoverOpen(false)
+  }
+
+  return (
+    <div
+      data-testid={`guide-element-${element.id}`}
+      className="relative group"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => { setHovered(false) }}
+    >
+      {/* Content */}
+      <div className="py-1">
+        <ElementContent element={element} />
+      </div>
+
+      {/* Hover ask button — always rendered, visibility controlled by CSS so it stays in DOM during click */}
+      {!popoverOpen && (
+        <button
+          aria-label="Ask about this"
+          onClick={openPopover}
+          className="absolute right-0 top-1 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-opacity"
+          style={{
+            background: 'var(--accent)',
+            color: '#fff',
+            visibility: hovered ? 'visible' : 'hidden',
+          }}
+        >
+          ?
+        </button>
+      )}
+
+      {/* Contextual popover */}
+      {popoverOpen && (
+        <div
+          className="absolute left-0 right-0 z-20 mt-1 rounded-lg border p-3 shadow-lg"
+          style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
+        >
+          <p className="mb-2 text-xs truncate" style={{ color: 'var(--muted)' }}>
+            Ask about: &ldquo;{element.content.slice(0, 60)}{element.content.length > 60 ? '…' : ''}&rdquo;
+          </p>
+          <form onSubmit={handleSubmit} className="flex gap-2">
+            <input
+              ref={inputRef}
+              value={question}
+              onChange={e => setQuestion(e.target.value)}
+              placeholder="What does this mean?"
+              className="flex-1 rounded-md border px-3 py-1.5 text-sm outline-none"
+              style={{
+                background: 'var(--background)',
+                borderColor: 'var(--border)',
+                color: 'var(--foreground)',
+              }}
+            />
+            <button
+              type="submit"
+              aria-label="Submit question"
+              className="rounded-md px-3 py-1.5 text-sm font-medium"
+              style={{ background: 'var(--accent)', color: '#fff' }}
+            >
+              Ask &rarr;
+            </button>
+          </form>
+          <button
+            onClick={() => setPopoverOpen(false)}
+            className="mt-1 text-xs"
+            style={{ color: 'var(--muted)' }}
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ElementContent({ element }: { element: ContentElement }) {
+  switch (element.type) {
+    case 'heading':
+      return element.level === 3
+        ? <h3 className="text-base font-semibold mt-4 mb-1">{element.content}</h3>
+        : <h2 className="text-lg font-semibold mt-6 mb-2">{element.content}</h2>
+    case 'paragraph':
+      return <p className="text-sm leading-7" style={{ color: 'var(--foreground)' }}>{element.content}</p>
+    case 'formula':
+      return (
+        <div className="my-3 rounded-md px-4 py-3 font-mono text-sm"
+             style={{ background: 'var(--surface)', borderLeft: '3px solid var(--accent)', color: 'var(--foreground)' }}>
+          $$ {element.content} $$
+        </div>
+      )
+    case 'code':
+      return (
+        <pre className="my-3 overflow-x-auto rounded-md px-4 py-3 text-sm"
+             style={{ background: 'var(--surface)', color: 'var(--foreground)' }}>
+          <code>{element.content}</code>
+        </pre>
+      )
+  }
+}
