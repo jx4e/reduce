@@ -4,7 +4,7 @@ import { getClient, buildSystemPrompt, fileToContentBlock } from '@/lib/anthropi
 import type { ContentBlock } from '@/lib/anthropic'
 import type { Guide, GuideSection, ContentElement, GuideMode } from '@/types/guide'
 
-const ALLOWED_TYPES = new Set(['application/pdf', 'text/plain', 'text/markdown'])
+const ALLOWED_TYPES = new Set(['application/pdf', 'text/plain', 'text/markdown', 'text/x-markdown'])
 
 // Raw shape Claude returns (no ids)
 interface ClaudeElement {
