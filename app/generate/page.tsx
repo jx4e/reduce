@@ -46,6 +46,7 @@ export default function GeneratePage() {
 
         const guide: Guide = await res.json()
         localStorage.setItem(guide.id, JSON.stringify(guide))
+        clearInterval(interval)
         router.push(`/guide/${guide.id}`)
       } catch (err) {
         clearInterval(interval)
@@ -54,7 +55,8 @@ export default function GeneratePage() {
     })()
 
     return () => clearInterval(interval)
-  }, [router])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (error) {
     return (
