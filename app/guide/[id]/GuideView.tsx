@@ -9,6 +9,7 @@ let msgIdCounter = 0
 function nextId() { return `msg-${++msgIdCounter}` }
 
 export default function GuideView({ guide }: { guide: Guide }) {
+  const [elementChats, setElementChats] = useState<Map<string, ChatMessage[]>>(new Map())
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [contextElement, setContextElement] = useState<ContentElement | undefined>()
   const [activeSection, setActiveSection] = useState<string>(guide.sections[0]?.id ?? '')
@@ -47,7 +48,6 @@ export default function GuideView({ guide }: { guide: Guide }) {
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   function handleAsk(element: ContentElement, question: string) {
-    // Send immediately — the popover already captured the question
     const userMsg: ChatMessage = {
       id: nextId(),
       role: 'user',
@@ -60,8 +60,11 @@ export default function GuideView({ guide }: { guide: Guide }) {
       role: 'assistant',
       content: `(Simulated response to: "${question}")`,
     }
-    setMessages(prev => [...prev, userMsg, assistantMsg])
-    setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
+    setElementChats(prev => {
+      const next = new Map(prev)
+      next.set(element.id, [...(next.get(element.id) ?? []), userMsg, assistantMsg])
+      return next
+    })
   }
 
   const askInputRef = useRef<HTMLInputElement>(null)
@@ -141,6 +144,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
                     <GuideElement
                       key={element.id}
                       element={element}
+                      messages={elementChats.get(element.id) ?? []}
                       onAsk={handleAsk}
                     />
                   ))}

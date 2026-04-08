@@ -17,13 +17,13 @@ const formulaElement: ContentElement = {
 
 describe('GuideElement', () => {
   it('renders paragraph content', () => {
-    render(<GuideElement element={paragraphElement} onAsk={() => {}} />)
+    render(<GuideElement element={paragraphElement} messages={[]} onAsk={() => {}} />)
     expect(screen.getByText(/Maxwell's equations/)).toBeInTheDocument()
   })
 
   it('shows ask button on hover', async () => {
     const user = userEvent.setup()
-    render(<GuideElement element={paragraphElement} onAsk={() => {}} />)
+    render(<GuideElement element={paragraphElement} messages={[]} onAsk={() => {}} />)
     const container = screen.getByTestId('guide-element-el-1')
     await user.hover(container)
     expect(screen.getByRole('button', { name: /ask/i })).toBeVisible()
@@ -31,7 +31,7 @@ describe('GuideElement', () => {
 
   it('shows popover when ask button is clicked', async () => {
     const user = userEvent.setup()
-    render(<GuideElement element={paragraphElement} onAsk={() => {}} />)
+    render(<GuideElement element={paragraphElement} messages={[]} onAsk={() => {}} />)
     const container = screen.getByTestId('guide-element-el-1')
     await user.hover(container)
     await user.click(screen.getByRole('button', { name: /ask/i }))
@@ -41,7 +41,7 @@ describe('GuideElement', () => {
   it('calls onAsk with element and question when form submitted', async () => {
     const user = userEvent.setup()
     const onAsk = jest.fn()
-    render(<GuideElement element={paragraphElement} onAsk={onAsk} />)
+    render(<GuideElement element={paragraphElement} messages={[]} onAsk={onAsk} />)
     const container = screen.getByTestId('guide-element-el-1')
     await user.hover(container)
     await user.click(screen.getByRole('button', { name: /ask/i }))
