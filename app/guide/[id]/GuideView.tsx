@@ -21,11 +21,19 @@ export default function GuideView({ guide }: { guide: Guide }) {
     if (!scrollEl) return
 
     function updateActive() {
-      const threshold = scrollEl!.clientHeight * 0.25 // 25% down from top of scroll container
+      const { scrollTop, clientHeight, scrollHeight } = scrollEl!
+
+      // At the bottom — last section wins regardless of its size
+      if (scrollTop + clientHeight >= scrollHeight - 4) {
+        setActiveSection(guide.sections[guide.sections.length - 1]?.id ?? '')
+        return
+      }
+
+      const threshold = clientHeight * 0.25
       let active = guide.sections[0]?.id ?? ''
       for (const section of guide.sections) {
         const el = scrollEl!.querySelector(`#section-${section.id}`) as HTMLElement | null
-        if (el && el.offsetTop - scrollEl!.scrollTop <= threshold) {
+        if (el && el.offsetTop - scrollTop <= threshold) {
           active = section.id
         }
       }
