@@ -8,12 +8,15 @@ import type { ChatMessage, ContentElement } from '@/types/guide'
 interface GuideElementProps {
   element: ContentElement
   messages: ChatMessage[]
+  note: string
   onAsk: (element: ContentElement, question: string) => void
+  onNoteChange: (elementId: string, note: string) => void
 }
 
-export default function GuideElement({ element, messages, onAsk }: GuideElementProps) {
+export default function GuideElement({ element, messages, note, onAsk, onNoteChange }: GuideElementProps) {
   const [hovered, setHovered] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<'chat' | 'notes'>('chat')
   const [question, setQuestion] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
@@ -87,54 +90,94 @@ export default function GuideElement({ element, messages, onAsk }: GuideElementP
               <ElementContent element={element} />
             </div>
 
-            {/* Chat history */}
-            <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-3 min-h-0">
-              {messages.length === 0 && (
-                <p className="text-xs" style={{ color: 'var(--muted)' }}>
-                  Ask anything about this — your conversation stays here.
-                </p>
-              )}
-              {messages.map(msg => (
-                <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div
-                    className="max-w-[85%] rounded-xl px-3 py-2 text-sm leading-relaxed"
-                    style={{
-                      background: msg.role === 'user' ? 'var(--accent)' : 'var(--background)',
-                      color: msg.role === 'user' ? '#fff' : 'var(--foreground)',
-                      border: msg.role === 'assistant' ? '1px solid var(--border)' : 'none',
-                    }}
-                  >
-                    {msg.content}
-                  </div>
-                </div>
+            {/* Tab bar */}
+            <div className="flex shrink-0 border-b" style={{ borderColor: 'var(--border)' }}>
+              {(['chat', 'notes'] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className="px-5 py-2.5 text-xs font-semibold capitalize transition-colors"
+                  style={{
+                    color: activeTab === tab ? 'var(--foreground)' : 'var(--muted)',
+                    borderBottom: activeTab === tab ? '2px solid var(--accent)' : '2px solid transparent',
+                  }}
+                >
+                  {tab}
+                  {tab === 'chat' && messages.length > 0 && (
+                    <span className="ml-1.5 rounded-full px-1.5 py-0.5 text-[10px]"
+                      style={{ background: 'var(--accent)', color: '#fff' }}>
+                      {messages.length}
+                    </span>
+                  )}
+                </button>
               ))}
-              <div ref={chatEndRef} />
             </div>
 
-            {/* Input */}
-            <form
-              onSubmit={handleSubmit}
-              className="shrink-0 border-t flex items-center gap-3 px-4 py-3"
-              style={{ borderColor: 'var(--border)' }}
-            >
-              <input
-                ref={inputRef}
-                value={question}
-                onChange={e => setQuestion(e.target.value)}
-                placeholder="What does this mean?"
-                className="flex-1 rounded-lg border px-3 py-2 text-sm outline-none"
-                style={{ background: 'var(--background)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
-                onKeyDown={e => { if (e.key === 'Escape') setModalOpen(false) }}
-              />
-              <button
-                type="submit"
-                aria-label="Submit question"
-                className="rounded-lg px-4 py-2 text-sm font-semibold shrink-0"
-                style={{ background: 'var(--accent)', color: '#fff' }}
-              >
-                Ask →
-              </button>
-            </form>
+            {/* Chat tab */}
+            {activeTab === 'chat' && (
+              <>
+                <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-3 min-h-0">
+                  {messages.length === 0 && (
+                    <p className="text-xs" style={{ color: 'var(--muted)' }}>
+                      Ask anything about this — your conversation stays here.
+                    </p>
+                  )}
+                  {messages.map(msg => (
+                    <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div
+                        className="max-w-[85%] rounded-xl px-3 py-2 text-sm leading-relaxed"
+                        style={{
+                          background: msg.role === 'user' ? 'var(--accent)' : 'var(--background)',
+                          color: msg.role === 'user' ? '#fff' : 'var(--foreground)',
+                          border: msg.role === 'assistant' ? '1px solid var(--border)' : 'none',
+                        }}
+                      >
+                        {msg.content}
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={chatEndRef} />
+                </div>
+                <form
+                  onSubmit={handleSubmit}
+                  className="shrink-0 border-t flex items-center gap-3 px-4 py-3"
+                  style={{ borderColor: 'var(--border)' }}
+                >
+                  <input
+                    ref={inputRef}
+                    value={question}
+                    onChange={e => setQuestion(e.target.value)}
+                    placeholder="What does this mean?"
+                    className="flex-1 rounded-lg border px-3 py-2 text-sm outline-none"
+                    style={{ background: 'var(--background)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
+                    onKeyDown={e => { if (e.key === 'Escape') setModalOpen(false) }}
+                  />
+                  <button
+                    type="submit"
+                    aria-label="Submit question"
+                    className="rounded-lg px-4 py-2 text-sm font-semibold shrink-0"
+                    style={{ background: 'var(--accent)', color: '#fff' }}
+                  >
+                    Ask →
+                  </button>
+                </form>
+              </>
+            )}
+
+            {/* Notes tab */}
+            {activeTab === 'notes' && (
+              <div className="flex-1 flex flex-col min-h-0 px-5 py-4">
+                <textarea
+                  aria-label="Notes"
+                  value={note}
+                  onChange={e => onNoteChange(element.id, e.target.value)}
+                  placeholder="Jot down anything about this…"
+                  className="flex-1 resize-none rounded-lg border p-3 text-sm leading-relaxed outline-none"
+                  style={{ background: 'var(--background)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
+                  onKeyDown={e => { if (e.key === 'Escape') setModalOpen(false) }}
+                />
+              </div>
+            )}
           </div>
         </div>
       )}

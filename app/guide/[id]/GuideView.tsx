@@ -10,6 +10,7 @@ function nextId() { return `msg-${++msgIdCounter}` }
 
 export default function GuideView({ guide }: { guide: Guide }) {
   const [elementChats, setElementChats] = useState<Map<string, ChatMessage[]>>(new Map())
+  const [elementNotes, setElementNotes] = useState<Map<string, string>>(new Map())
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [contextElement, setContextElement] = useState<ContentElement | undefined>()
   const [activeSection, setActiveSection] = useState<string>(guide.sections[0]?.id ?? '')
@@ -65,6 +66,10 @@ export default function GuideView({ guide }: { guide: Guide }) {
       next.set(element.id, [...(next.get(element.id) ?? []), userMsg, assistantMsg])
       return next
     })
+  }
+
+  function handleNoteChange(elementId: string, note: string) {
+    setElementNotes(prev => new Map(prev).set(elementId, note))
   }
 
   const askInputRef = useRef<HTMLInputElement>(null)
@@ -145,7 +150,9 @@ export default function GuideView({ guide }: { guide: Guide }) {
                       key={element.id}
                       element={element}
                       messages={elementChats.get(element.id) ?? []}
+                      note={elementNotes.get(element.id) ?? ''}
                       onAsk={handleAsk}
+                      onNoteChange={handleNoteChange}
                     />
                   ))}
                 </div>
