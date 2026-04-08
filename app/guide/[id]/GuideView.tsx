@@ -131,7 +131,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
         </aside>
 
         {/* Scrollable content */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6" style={{ scrollBehavior: 'smooth' }}>
           <div className="max-w-2xl mx-auto flex flex-col gap-8">
             {guide.sections.map(section => (
               <section key={section.id} id={`section-${section.id}`}>
