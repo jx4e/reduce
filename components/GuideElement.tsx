@@ -27,7 +27,7 @@ export default function GuideElement({ element, messages, note, onAsk, onNoteCha
   }
 
   function closeModal() {
-    closeModal()
+    setModalOpen(false)
     setHovered(false)
   }
 
