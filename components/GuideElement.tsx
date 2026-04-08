@@ -18,7 +18,7 @@ export default function GuideElement({ element, messages, note, onAsk, onNoteCha
   const [modalOpen, setModalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'chat' | 'notes'>('chat')
   const [question, setQuestion] = useState('')
-  const [previewHeight, setPreviewHeight] = useState(160)
+  const [previewHeight, setPreviewHeight] = useState(380)
   const inputRef = useRef<HTMLInputElement>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
   const modalRef = useRef<HTMLDivElement>(null)
