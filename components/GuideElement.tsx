@@ -18,8 +18,28 @@ export default function GuideElement({ element, messages, note, onAsk, onNoteCha
   const [modalOpen, setModalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'chat' | 'notes'>('chat')
   const [question, setQuestion] = useState('')
+  const [previewHeight, setPreviewHeight] = useState(160)
   const inputRef = useRef<HTMLInputElement>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
+  const modalRef = useRef<HTMLDivElement>(null)
+  const dragState = useRef<{ startY: number; startH: number } | null>(null)
+
+  function onDragPointerDown(e: React.PointerEvent) {
+    dragState.current = { startY: e.clientY, startH: previewHeight }
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }
+
+  function onDragPointerMove(e: React.PointerEvent) {
+    if (!dragState.current) return
+    const delta = e.clientY - dragState.current.startY
+    const modalH = modalRef.current?.offsetHeight ?? 480
+    const next = Math.min(Math.max(60, dragState.current.startH + delta), modalH * 0.72)
+    setPreviewHeight(next)
+  }
+
+  function onDragPointerUp() {
+    dragState.current = null
+  }
 
   function openModal() {
     setModalOpen(true)
@@ -87,12 +107,24 @@ export default function GuideElement({ element, messages, note, onAsk, onNoteCha
           onClick={e => { if (e.target === e.currentTarget) closeModal() }}
         >
           <div
+            ref={modalRef}
             className="w-full max-w-lg rounded-2xl border shadow-2xl flex flex-col overflow-hidden"
             style={{ background: 'var(--surface)', borderColor: 'var(--border)', maxHeight: '80vh', animation: 'modal-in 0.2s cubic-bezier(0.34,1.56,0.64,1)' }}
           >
             {/* Element preview */}
-            <div className="px-6 pt-5 pb-4 border-b overflow-y-auto" style={{ borderColor: 'var(--border)', maxHeight: '40%' }}>
+            <div className="px-6 pt-5 pb-4 overflow-y-auto shrink-0" style={{ height: previewHeight }}>
               <ElementContent element={element} />
+            </div>
+
+            {/* Drag handle */}
+            <div
+              className="shrink-0 flex items-center justify-center border-y cursor-row-resize select-none"
+              style={{ height: '12px', borderColor: 'var(--border)', background: 'var(--background)' }}
+              onPointerDown={onDragPointerDown}
+              onPointerMove={onDragPointerMove}
+              onPointerUp={onDragPointerUp}
+            >
+              <div className="rounded-full" style={{ width: '2rem', height: '3px', background: 'var(--border-hover)' }} />
             </div>
 
             {/* Tab bar */}
