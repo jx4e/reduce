@@ -47,10 +47,21 @@ export default function GuideView({ guide }: { guide: Guide }) {
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   function handleAsk(element: ContentElement, question: string) {
-    // Pre-fill the pane input with context so the user can edit before sending
-    setContextElement(element)
-    setInput(question)
-    askInputRef.current?.focus()
+    // Send immediately — the popover already captured the question
+    const userMsg: ChatMessage = {
+      id: nextId(),
+      role: 'user',
+      content: question,
+      contextElementId: element.id,
+      contextElementContent: element.content,
+    }
+    const assistantMsg: ChatMessage = {
+      id: nextId(),
+      role: 'assistant',
+      content: `(Simulated response to: "${question}")`,
+    }
+    setMessages(prev => [...prev, userMsg, assistantMsg])
+    setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
   }
 
   const askInputRef = useRef<HTMLInputElement>(null)
