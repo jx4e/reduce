@@ -68,9 +68,9 @@ export default function GuideView({ guide }: { guide: Guide }) {
   }
 
   return (
-    <div className="flex flex-col h-full" style={{ minHeight: 'calc(100vh - 3.5rem)' }}>
+    <div className="flex flex-col flex-1 min-h-0">
       {/* Guide header */}
-      <div className="border-b px-6 py-3 flex items-center justify-between"
+      <div className="border-b px-6 py-3 flex items-center justify-between shrink-0"
            style={{ borderColor: 'var(--border)' }}>
         <h1 className="text-sm font-semibold truncate">{guide.title}</h1>
         <Link href="/" className="text-sm transition-colors"
@@ -79,8 +79,8 @@ export default function GuideView({ guide }: { guide: Guide }) {
         </Link>
       </div>
 
-      {/* Main content area — overflow-hidden so only the content div scrolls */}
-      <div className="flex flex-1 overflow-hidden">
+      {/* Main content area — min-h-0 lets this shrink so overflow-hidden actually clips */}
+      <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* TOC Sidebar — fills the full height of the flex container, stays pinned */}
         <aside
           className="hidden md:flex w-52 shrink-0 flex-col gap-1 border-r px-4 py-6 overflow-y-auto"
