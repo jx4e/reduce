@@ -20,30 +20,20 @@ export default function GuideView({ guide }: { guide: Guide }) {
     const scrollEl = scrollRef.current
     if (!scrollEl) return
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // Pick the topmost intersecting section
-        const visible = entries
-          .filter(e => e.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
-        if (visible.length > 0) {
-          setActiveSection(visible[0].target.id.replace('section-', ''))
+    function updateActive() {
+      const threshold = scrollEl!.clientHeight * 0.25 // 25% down from top of scroll container
+      let active = guide.sections[0]?.id ?? ''
+      for (const section of guide.sections) {
+        const el = scrollEl!.querySelector(`#section-${section.id}`) as HTMLElement | null
+        if (el && el.offsetTop - scrollEl!.scrollTop <= threshold) {
+          active = section.id
         }
-      },
-      {
-        root: scrollEl,
-        // Fire when top 40% of scroll area is crossed — feels responsive without being jumpy
-        rootMargin: '0px 0px -60% 0px',
-        threshold: 0,
       }
-    )
+      setActiveSection(active)
+    }
 
-    guide.sections.forEach(section => {
-      const el = scrollEl.querySelector(`#section-${section.id}`)
-      if (el) observer.observe(el)
-    })
-
-    return () => observer.disconnect()
+    scrollEl.addEventListener('scroll', updateActive, { passive: true })
+    return () => scrollEl.removeEventListener('scroll', updateActive)
   }, [guide.sections])
 
   function handleAsk(element: ContentElement, question: string) {
