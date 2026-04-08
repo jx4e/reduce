@@ -7,7 +7,13 @@ export interface GuideCardData {
   mode: GuideMode
 }
 
-export type ContentElementType = 'heading' | 'paragraph' | 'formula' | 'code' | 'image'
+export type ContentElementType = 'heading' | 'paragraph' | 'formula' | 'code' | 'image' | 'timeline'
+
+export interface TimelineEvent {
+  date: string
+  title: string
+  description: string
+}
 
 export interface ContentElement {
   id: string
@@ -16,6 +22,7 @@ export interface ContentElement {
   level?: 2 | 3           // heading level
   language?: string        // code block language
   src?: string             // image URL
+  events?: TimelineEvent[] // timeline events
 }
 
 export interface GuideSection {

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import katex from 'katex'
 import hljs from 'highlight.js'
-import type { ChatMessage, ContentElement } from '@/types/guide'
+import type { ChatMessage, ContentElement, TimelineEvent } from '@/types/guide'
 
 interface GuideElementProps {
   element: ContentElement
@@ -219,6 +219,8 @@ function ElementContent({ element }: { element: ContentElement }) {
           )}
         </figure>
       )
+    case 'timeline':
+      return <TimelineBlock events={element.events ?? []} />
   }
 }
 
@@ -239,6 +241,30 @@ function CodeBlock({ content, language }: { content: string; language?: string }
         dangerouslySetInnerHTML={{ __html: html }}
       />
     </pre>
+  )
+}
+
+function TimelineBlock({ events }: { events: TimelineEvent[] }) {
+  return (
+    <div className="my-3 flex flex-col" style={{ paddingLeft: '1rem' }}>
+      {events.map((event, i) => (
+        <div key={i} className="relative flex gap-4" style={{ paddingBottom: i < events.length - 1 ? '1.5rem' : 0 }}>
+          {/* Vertical line + dot */}
+          <div className="flex flex-col items-center shrink-0" style={{ width: '1rem' }}>
+            <div className="rounded-full shrink-0" style={{ width: '0.5rem', height: '0.5rem', marginTop: '0.35rem', background: 'var(--accent)' }} />
+            {i < events.length - 1 && (
+              <div className="flex-1 mt-1" style={{ width: '1px', background: 'var(--border)' }} />
+            )}
+          </div>
+          {/* Content */}
+          <div className="flex flex-col gap-0.5 pb-0.5">
+            <span className="text-xs font-semibold" style={{ color: 'var(--accent)' }}>{event.date}</span>
+            <span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{event.title}</span>
+            <p className="text-xs leading-relaxed" style={{ color: 'var(--muted)' }}>{event.description}</p>
+          </div>
+        </div>
+      ))}
+    </div>
   )
 }
 
