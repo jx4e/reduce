@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import Navbar from '@/components/Navbar'
+import NavigationLoader from '@/components/NavigationLoader'
 import './globals.css'
 import 'katex/dist/katex.min.css'
 import 'highlight.js/styles/github-dark-dimmed.min.css'
@@ -30,6 +31,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="h-full flex flex-col" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+        <NavigationLoader />
         <Navbar />
         <main className="flex flex-1 flex-col min-h-0">{children}</main>
       </body>
