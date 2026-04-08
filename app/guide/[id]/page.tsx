@@ -2,7 +2,7 @@
 import GuideView from './GuideView'
 import type { Guide } from '@/types/guide'
 
-const MOCK_GUIDE: Guide = {
+const MAXWELL_GUIDE: Guide = {
   id: '1',
   title: "Electromagnetism — Maxwell's Equations",
   mode: 'math-cs',
@@ -50,10 +50,67 @@ print(f"Flux = {electric_flux(E, A, n)} V·m")` },
   ],
 }
 
+const FRENCH_REVOLUTION_GUIDE: Guide = {
+  id: '2',
+  title: 'The French Revolution: Causes and Consequences',
+  mode: 'humanities',
+  createdAt: 'Apr 3, 2026',
+  sections: [
+    {
+      id: 's1',
+      heading: 'Background',
+      elements: [
+        { id: 'f1', type: 'paragraph', content: 'The French Revolution (1789–1799) was a period of radical political and social transformation in France. It dismantled the monarchy, established a republic, and culminated in Napoleon Bonaparte\'s rise to power.' },
+        { id: 'f2', type: 'image', src: 'https://placehold.co/600x340/111111/6366f1?text=Storming+of+the+Bastille', content: 'Storming of the Bastille, 14 July 1789' },
+        { id: 'f3', type: 'paragraph', content: 'France in the 1780s was an absolute monarchy under King Louis XVI. Society was divided into three Estates: the clergy (First), the nobility (Second), and everyone else — roughly 97% of the population (Third).' },
+      ],
+    },
+    {
+      id: 's2',
+      heading: 'Causes',
+      elements: [
+        { id: 'f4', type: 'heading', level: 3, content: 'Financial Crisis' },
+        { id: 'f5', type: 'paragraph', content: "France was effectively bankrupt by the late 1780s. Decades of wars — including support for the American Revolution — had drained the treasury. The tax burden fell almost entirely on the Third Estate while the nobility and clergy enjoyed exemptions." },
+        { id: 'f6', type: 'heading', level: 3, content: 'Social Inequality' },
+        { id: 'f7', type: 'paragraph', content: 'The rigid Estates system meant that commoners had no political voice despite bearing the greatest economic burden. Bread prices surged after poor harvests in 1788, pushing urban workers and peasants to the brink of starvation.' },
+        { id: 'f8', type: 'image', src: 'https://placehold.co/600x300/111111/6366f1?text=The+Three+Estates', content: 'The Three Estates: Clergy, Nobility, and Commoners' },
+        { id: 'f9', type: 'heading', level: 3, content: 'Enlightenment Ideas' },
+        { id: 'f10', type: 'paragraph', content: "Philosophers like Rousseau, Voltaire, and Montesquieu had popularised ideas of natural rights, popular sovereignty, and the separation of powers. These ideas gave the Third Estate an intellectual framework to challenge the existing order." },
+      ],
+    },
+    {
+      id: 's3',
+      heading: 'Key Events',
+      elements: [
+        { id: 'f11', type: 'heading', level: 3, content: '1789: The Revolution Begins' },
+        { id: 'f12', type: 'paragraph', content: 'The Estates-General convened in May 1789. The Third Estate broke away to form the National Assembly, swearing the Tennis Court Oath not to disband until a constitution was written. On 14 July, Parisian crowds stormed the Bastille fortress — the symbolic start of the Revolution.' },
+        { id: 'f13', type: 'heading', level: 3, content: '1793–1794: The Reign of Terror' },
+        { id: 'f14', type: 'paragraph', content: "Maximilien Robespierre and the Committee of Public Safety executed thousands perceived as enemies of the Revolution — including King Louis XVI and Queen Marie Antoinette. The period ended with Robespierre's own execution in Thermidor 1794." },
+        { id: 'f15', type: 'image', src: 'https://placehold.co/600x320/111111/6366f1?text=Robespierre+%26+the+Terror', content: "Robespierre presided over the Revolution's most violent phase" },
+        { id: 'f16', type: 'heading', level: 3, content: '1799: Napoleon\'s Coup' },
+        { id: 'f17', type: 'paragraph', content: 'Napoleon Bonaparte seized power in the coup of 18 Brumaire (November 1799), ending the Directory and establishing the Consulate. This is conventionally taken as the end of the Revolution.' },
+      ],
+    },
+    {
+      id: 's4',
+      heading: 'Legacy',
+      elements: [
+        { id: 'f18', type: 'paragraph', content: 'The Revolution transformed not just France but the entire Western political order. Its ideals — liberté, égalité, fraternité — inspired revolutions across Europe and Latin America throughout the 19th century.' },
+        { id: 'f19', type: 'paragraph', content: 'It established key modern principles: the sovereignty of the people, equality before the law, and the separation of church and state. The Napoleonic Code, which codified many revolutionary legal reforms, still underpins the legal systems of dozens of countries.' },
+        { id: 'f20', type: 'image', src: 'https://placehold.co/600x300/111111/6366f1?text=Lib%C3%A9rt%C3%A9+%C3%89galit%C3%A9+Fraternit%C3%A9', content: 'The revolutionary motto became the foundation of the French Republic' },
+      ],
+    },
+  ],
+}
+
+const GUIDES: Record<string, Guide> = {
+  '1': MAXWELL_GUIDE,
+  '2': FRENCH_REVOLUTION_GUIDE,
+}
+
 export default async function GuidePage(props: PageProps<'/guide/[id]'>) {
   const { id } = await props.params
-  // In production: fetch guide from DB using id
-  const guide = { ...MOCK_GUIDE, id }
+  const guide = GUIDES[id] ?? { ...MAXWELL_GUIDE, id }
 
   return <GuideView guide={guide} />
 }
