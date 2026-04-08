@@ -26,6 +26,11 @@ export default function GuideElement({ element, messages, note, onAsk, onNoteCha
     setTimeout(() => inputRef.current?.focus(), 50)
   }
 
+  function closeModal() {
+    closeModal()
+    setHovered(false)
+  }
+
   // Scroll to bottom when new messages arrive
   useEffect(() => {
     if (modalOpen) {
@@ -79,7 +84,7 @@ export default function GuideElement({ element, messages, note, onAsk, onNoteCha
         <div
           className="fixed inset-0 z-50 flex items-center justify-center px-4"
           style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(6px)', animation: 'fade-in 0.15s ease-out' }}
-          onClick={e => { if (e.target === e.currentTarget) setModalOpen(false) }}
+          onClick={e => { if (e.target === e.currentTarget) closeModal() }}
         >
           <div
             className="w-full max-w-lg rounded-2xl border shadow-2xl flex flex-col overflow-hidden"
@@ -150,7 +155,7 @@ export default function GuideElement({ element, messages, note, onAsk, onNoteCha
                     placeholder="What does this mean?"
                     className="flex-1 rounded-lg border px-3 py-2 text-sm outline-none"
                     style={{ background: 'var(--background)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
-                    onKeyDown={e => { if (e.key === 'Escape') setModalOpen(false) }}
+                    onKeyDown={e => { if (e.key === 'Escape') closeModal() }}
                   />
                   <button
                     type="submit"
@@ -174,7 +179,7 @@ export default function GuideElement({ element, messages, note, onAsk, onNoteCha
                   placeholder="Jot down anything about this…"
                   className="flex-1 resize-none rounded-lg border p-3 text-sm leading-relaxed outline-none"
                   style={{ background: 'var(--background)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
-                  onKeyDown={e => { if (e.key === 'Escape') setModalOpen(false) }}
+                  onKeyDown={e => { if (e.key === 'Escape') closeModal() }}
                 />
               </div>
             )}
