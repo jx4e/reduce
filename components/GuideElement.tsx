@@ -109,7 +109,7 @@ export default function GuideElement({ element, messages, note, onAsk, onNoteCha
           <div
             ref={modalRef}
             className="w-full max-w-lg rounded-2xl border shadow-2xl flex flex-col overflow-hidden"
-            style={{ background: 'var(--surface)', borderColor: 'var(--border)', maxHeight: '80vh', animation: 'modal-in 0.2s cubic-bezier(0.34,1.56,0.64,1)' }}
+            style={{ background: 'var(--surface)', borderColor: 'var(--border)', height: '80vh', animation: 'modal-in 0.2s cubic-bezier(0.34,1.56,0.64,1)' }}
           >
             {/* Element preview */}
             <div className="px-6 pt-5 pb-4 overflow-y-auto shrink-0" style={{ height: previewHeight }}>
