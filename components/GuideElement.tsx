@@ -36,65 +36,69 @@ export default function GuideElement({ element, onAsk }: GuideElementProps) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => { setHovered(false) }}
     >
-      {/* Content — highlighted when popover is open */}
+      {/* Content — subtle ring when modal is open so user knows what they clicked */}
       <div
-        className="py-1 rounded transition-colors"
-        style={popoverOpen ? { background: 'rgba(99,102,241,0.12)', outline: '1px solid var(--accent)', outlineOffset: '2px' } : {}}
+        className="py-1 rounded transition-all"
+        style={popoverOpen ? { outline: '1px solid var(--accent)', outlineOffset: '3px' } : {}}
       >
         <ElementContent element={element} />
       </div>
 
-      {/* Hover ask button — always rendered, visibility controlled by CSS so it stays in DOM during click */}
-      {!popoverOpen && (
-        <button
-          aria-label="Ask about this"
-          onClick={openPopover}
-          className="absolute right-0 top-1 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-opacity"
-          style={{
-            background: 'var(--accent)',
-            color: '#fff',
-            visibility: hovered ? 'visible' : 'hidden',
-          }}
-        >
-          ?
-        </button>
-      )}
+      {/* Hover ask button */}
+      <button
+        aria-label="Ask about this"
+        onClick={openPopover}
+        className="absolute right-0 top-1 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-opacity"
+        style={{
+          background: 'var(--accent)',
+          color: '#fff',
+          visibility: hovered && !popoverOpen ? 'visible' : 'hidden',
+        }}
+      >
+        ?
+      </button>
 
-      {/* Contextual popover */}
+      {/* Modal overlay — blurred backdrop, element shown in full */}
       {popoverOpen && (
         <div
-          className="absolute left-0 right-0 z-20 mt-1 rounded-lg border p-3 shadow-lg"
-          style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(6px)' }}
+          onClick={e => { if (e.target === e.currentTarget) setPopoverOpen(false) }}
         >
-          <form onSubmit={handleSubmit} className="flex gap-2">
-            <input
-              ref={inputRef}
-              value={question}
-              onChange={e => setQuestion(e.target.value)}
-              placeholder="What does this mean?"
-              className="flex-1 rounded-md border px-3 py-1.5 text-sm outline-none"
-              style={{
-                background: 'var(--background)',
-                borderColor: 'var(--border)',
-                color: 'var(--foreground)',
-              }}
-            />
-            <button
-              type="submit"
-              aria-label="Submit question"
-              className="rounded-md px-3 py-1.5 text-sm font-medium"
-              style={{ background: 'var(--accent)', color: '#fff' }}
-            >
-              Ask &rarr;
-            </button>
-          </form>
-          <button
-            onClick={() => setPopoverOpen(false)}
-            className="mt-1 text-xs"
-            style={{ color: 'var(--muted)' }}
+          <div
+            className="w-full max-w-lg rounded-2xl border shadow-2xl overflow-hidden"
+            style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
           >
-            Cancel
-          </button>
+            {/* Element preview */}
+            <div className="px-6 pt-6 pb-4" style={{ borderBottom: '1px solid var(--border)' }}>
+              <ElementContent element={element} />
+            </div>
+
+            {/* Ask form */}
+            <form onSubmit={handleSubmit} className="flex items-center gap-3 px-4 py-4">
+              <input
+                ref={inputRef}
+                value={question}
+                onChange={e => setQuestion(e.target.value)}
+                placeholder="What does this mean?"
+                className="flex-1 rounded-lg border px-3 py-2 text-sm outline-none"
+                style={{
+                  background: 'var(--background)',
+                  borderColor: 'var(--border)',
+                  color: 'var(--foreground)',
+                }}
+                onKeyDown={e => { if (e.key === 'Escape') setPopoverOpen(false) }}
+              />
+              <button
+                type="submit"
+                aria-label="Submit question"
+                className="rounded-lg px-4 py-2 text-sm font-semibold shrink-0"
+                style={{ background: 'var(--accent)', color: '#fff' }}
+              >
+                Ask →
+              </button>
+            </form>
+          </div>
         </div>
       )}
     </div>
