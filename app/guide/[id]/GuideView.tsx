@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import GuideElement from '@/components/GuideElement'
-import AskBar from '@/components/AskBar'
 import type { Guide, ChatMessage, ContentElement } from '@/types/guide'
 
 let msgIdCounter = 0
@@ -44,25 +43,37 @@ export default function GuideView({ guide }: { guide: Guide }) {
     return () => scrollEl.removeEventListener('scroll', updateActive)
   }, [guide.sections])
 
+  const [input, setInput] = useState('')
+  const chatEndRef = useRef<HTMLDivElement>(null)
+
   function handleAsk(element: ContentElement, question: string) {
-    handleSend(question, element)
+    // Pre-fill the pane input with context so the user can edit before sending
+    setContextElement(element)
+    setInput(question)
+    askInputRef.current?.focus()
   }
 
-  function handleSend(question: string, ctx?: ContentElement) {
+  const askInputRef = useRef<HTMLInputElement>(null)
+
+  function handleSend(e: React.FormEvent) {
+    e.preventDefault()
+    if (!input.trim()) return
     const userMsg: ChatMessage = {
       id: nextId(),
       role: 'user',
-      content: question,
-      contextElementId: ctx?.id,
-      contextElementContent: ctx?.content,
+      content: input.trim(),
+      contextElementId: contextElement?.id,
+      contextElementContent: contextElement?.content,
     }
     const assistantMsg: ChatMessage = {
       id: nextId(),
       role: 'assistant',
-      content: `(Simulated response to: "${question}")`,
+      content: `(Simulated response to: "${input.trim()}")`,
     }
     setMessages(prev => [...prev, userMsg, assistantMsg])
+    setInput('')
     setContextElement(undefined)
+    setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
   }
 
   return (
@@ -108,7 +119,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
           })}
         </aside>
 
-        {/* Scrollable content — ref used by scroll listener */}
+        {/* Scrollable content */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
           <div className="max-w-2xl mx-auto flex flex-col gap-8">
             {guide.sections.map(section => (
@@ -129,16 +140,75 @@ export default function GuideView({ guide }: { guide: Guide }) {
             <div className="h-[75vh]" aria-hidden="true" />
           </div>
         </div>
-      </div>
 
-      {/* Always-visible ask bar */}
-      <div className="sticky bottom-0">
-        <AskBar
-          messages={messages}
-          onSend={handleSend}
-          contextElement={contextElement}
-          onClearContext={() => setContextElement(undefined)}
-        />
+        {/* Ask pane (right) */}
+        <aside
+          className="hidden md:flex w-72 shrink-0 flex-col border-l"
+          style={{ borderColor: 'var(--border)' }}
+        >
+          {/* Pane header */}
+          <div className="px-4 py-3 border-b shrink-0" style={{ borderColor: 'var(--border)' }}>
+            <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>
+              Ask
+            </p>
+          </div>
+
+          {/* Chat history */}
+          <div role="log" className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-3">
+            {messages.length === 0 && (
+              <p className="text-xs mt-2" style={{ color: 'var(--muted-dark)' }}>
+                Ask anything about this guide, or click <strong>?</strong> on any element to ask about it specifically.
+              </p>
+            )}
+            {messages.map(msg => (
+              <div key={msg.id} className={`flex flex-col gap-1 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                {msg.contextElementContent && (
+                  <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--border)', color: 'var(--muted)' }}>
+                    re: {msg.contextElementContent.slice(0, 35)}…
+                  </span>
+                )}
+                <div
+                  className="max-w-[90%] rounded-xl px-3 py-2 text-xs leading-relaxed"
+                  style={{
+                    background: msg.role === 'user' ? 'var(--accent)' : 'var(--surface)',
+                    color: msg.role === 'user' ? '#fff' : 'var(--foreground)',
+                  }}
+                >
+                  {msg.content}
+                </div>
+              </div>
+            ))}
+            <div ref={chatEndRef} />
+          </div>
+
+          {/* Input */}
+          <form onSubmit={handleSend} className="shrink-0 border-t px-3 py-3 flex flex-col gap-2" style={{ borderColor: 'var(--border)' }}>
+            {contextElement && (
+              <div className="flex items-center justify-between rounded px-2 py-1 text-xs" style={{ background: 'var(--border)', color: 'var(--muted)' }}>
+                <span className="truncate">re: {contextElement.content.slice(0, 40)}</span>
+                <button type="button" onClick={() => setContextElement(undefined)} className="ml-2 shrink-0">×</button>
+              </div>
+            )}
+            <div className="flex items-center gap-2">
+              <input
+                ref={askInputRef}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                placeholder="Ask anything…"
+                className="flex-1 bg-transparent text-xs outline-none"
+                style={{ color: 'var(--foreground)' }}
+              />
+              <button
+                type="submit"
+                disabled={!input.trim()}
+                className="text-sm font-semibold disabled:opacity-30 transition-opacity"
+                style={{ color: 'var(--accent)' }}
+              >
+                →
+              </button>
+            </div>
+          </form>
+        </aside>
       </div>
     </div>
   )
