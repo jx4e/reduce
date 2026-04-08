@@ -1,8 +1,12 @@
 import Link from 'next/link'
-import type { GuideCardData } from '@/types/guide'
+import type { GuideCardData, GuideMode } from '@/types/guide'
 
 export default function GuideCard({ guide }: { guide: GuideCardData }) {
-  const modeLabel = guide.mode === 'math-cs' ? 'Math / CS' : 'Humanities'
+  const modeLabels: Record<GuideMode, string> = {
+    'math-cs': 'Math / CS',
+    'humanities': 'Humanities',
+  }
+  const modeLabel = modeLabels[guide.mode]
 
   return (
     <Link
