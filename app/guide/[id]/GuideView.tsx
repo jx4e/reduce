@@ -108,8 +108,8 @@ export default function GuideView({ guide }: { guide: Guide }) {
           })}
         </aside>
 
-        {/* Scrollable content — ref used by IntersectionObserver */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6 pb-4">
+        {/* Scrollable content — ref used by scroll listener */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
           <div className="max-w-2xl mx-auto flex flex-col gap-8">
             {guide.sections.map(section => (
               <section key={section.id} id={`section-${section.id}`}>
@@ -125,6 +125,8 @@ export default function GuideView({ guide }: { guide: Guide }) {
                 </div>
               </section>
             ))}
+            {/* Spacer so the last section can always scroll past the highlight threshold */}
+            <div className="h-[75vh]" aria-hidden="true" />
           </div>
         </div>
       </div>
