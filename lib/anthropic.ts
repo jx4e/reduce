@@ -6,12 +6,17 @@ import type { GuideMode } from '@/types/guide'
 let _client: Anthropic | null = null
 
 export function getClient(): Anthropic {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw new Error('ANTHROPIC_API_KEY environment variable is not set')
+  }
   if (!_client) _client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
   return _client
 }
 
 // ── Prompt builder ────────────────────────────────────────────────────────────
 
+// Image elements are intentionally excluded from schema — Claude cannot produce
+// valid image URLs; images are reserved for future file-extraction features.
 const SCHEMA = `
 {
   "title": "string — concise title for this guide",
@@ -20,7 +25,7 @@ const SCHEMA = `
       "heading": "string — section title",
       "elements": [
         { "type": "paragraph", "content": "string" },
-        { "type": "heading", "content": "string", "level": 2 },
+        { "type": "heading", "content": "string", "level": 2 }, // level must be 2 or 3 only
         { "type": "formula", "content": "LaTeX string — KaTeX-compatible, no $ delimiters" },
         { "type": "code", "content": "string", "language": "python|javascript|..." },
         {
@@ -79,11 +84,16 @@ export type ContentBlock = DocumentBlock | TextBlock
 export async function fileToContentBlock(file: File): Promise<ContentBlock> {
   if (file.type === 'application/pdf') {
     const buffer = await file.arrayBuffer()
+    // Node.js only — do not call from browser code
     const base64 = Buffer.from(buffer).toString('base64')
     return {
       type: 'document',
       source: { type: 'base64', media_type: 'application/pdf', data: base64 },
     }
+  }
+  const TEXT_TYPES = new Set(['text/plain', 'text/markdown', 'text/x-markdown'])
+  if (!TEXT_TYPES.has(file.type)) {
+    throw new Error(`Unsupported file type: ${file.type}`)
   }
   const text = await file.text()
   return { type: 'text', text }
