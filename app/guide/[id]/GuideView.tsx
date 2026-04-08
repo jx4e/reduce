@@ -96,6 +96,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
               <a
                 key={section.id}
                 href={`#section-${section.id}`}
+                onClick={() => setActiveSection(section.id)}
                 className="text-xs py-1.5 px-2 rounded transition-colors"
                 style={{
                   color: isActive ? 'var(--foreground)' : 'var(--muted)',
