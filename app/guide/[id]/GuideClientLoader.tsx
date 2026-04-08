@@ -11,7 +11,11 @@ export default function GuideClientLoader({ id }: { id: string }) {
   useEffect(() => {
     const stored = localStorage.getItem(id)
     if (stored) {
-      setGuide(JSON.parse(stored) as Guide)
+      try {
+        setGuide(JSON.parse(stored) as Guide)
+      } catch {
+        setGuide('not-found')
+      }
     } else {
       setGuide('not-found')
     }
