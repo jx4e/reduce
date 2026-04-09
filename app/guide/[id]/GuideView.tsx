@@ -60,6 +60,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
   const chatDragRef = useRef<{ startX: number; startW: number } | null>(null)
   const [isChatDragging, setIsChatDragging] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
+  const mobileChatEndRef = useRef<HTMLDivElement>(null)
   const chatInputRef = useRef<HTMLInputElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -83,9 +84,9 @@ export default function GuideView({ guide }: { guide: Guide }) {
   }, [])
 
   useEffect(() => {
-    if (mobileSheet === 'chat') {
-      setTimeout(() => chatInputRef.current?.focus(), 50)
-    }
+    if (mobileSheet !== 'chat') return
+    const id = setTimeout(() => chatInputRef.current?.focus(), 50)
+    return () => clearTimeout(id)
   }, [mobileSheet])
 
   useEffect(() => {
@@ -489,6 +490,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
             />
             {/* Sheet */}
             <div
+              data-testid="mobile-chat-sheet"
               className="fixed left-0 right-0 z-40 rounded-t-2xl border-t border-x flex flex-col"
               style={{
                 bottom: 'calc(3.5rem + env(safe-area-inset-bottom))',
@@ -543,7 +545,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
                     </div>
                   </div>
                 ))}
-                <div ref={chatEndRef} />
+                <div ref={mobileChatEndRef} />
               </div>
               {/* Input */}
               <div className="px-3 py-3 border-t shrink-0" style={{ borderColor: 'var(--border)' }}>

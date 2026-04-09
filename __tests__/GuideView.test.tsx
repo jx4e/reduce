@@ -70,7 +70,7 @@ describe('GuideView — mobile bottom nav', () => {
 
     await user.click(screen.getByRole('button', { name: /^chat$/i }))
     expect(screen.getByRole('heading', { name: /^ask$/i })).toBeInTheDocument()
-    expect(within(screen.getByTestId('chat-sheet-backdrop').parentElement!).getByPlaceholderText(/ask…/i)).toBeInTheDocument()
+    expect(within(screen.getByTestId('mobile-chat-sheet')).getByPlaceholderText(/ask…/i)).toBeInTheDocument()
   })
 
   it('closes the chat sheet when Guide button is tapped', async () => {
