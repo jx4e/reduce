@@ -122,6 +122,18 @@ export default async function LandingPage() {
         </div>
       </section>
 
+      {/* Footer */}
+      <footer
+        className="px-6 py-8 flex items-center justify-between text-xs border-t"
+        style={{ borderColor: 'var(--border)', color: 'var(--muted-dark)' }}
+      >
+        <span>© {new Date().getFullYear()} tldr.</span>
+        <div className="flex items-center gap-5">
+          <Link href="/login" style={{ color: 'var(--muted-dark)' }}>Sign in</Link>
+          <Link href="/register" style={{ color: 'var(--muted-dark)' }}>Get started</Link>
+        </div>
+      </footer>
+
     </div>
   )
 }
