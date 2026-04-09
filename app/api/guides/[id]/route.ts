@@ -22,7 +22,7 @@ export async function GET(_request: NextRequest, context: Context) {
     id: row.id,
     title: row.title,
     mode: row.mode as GuideMode,
-    sections: row.content as GuideSection[],
+    sections: row.content as unknown as GuideSection[],
     createdAt: row.createdAt.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
