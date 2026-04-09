@@ -254,7 +254,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
             <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>
               Contents
             </p>
-            {mobileSheet !== 'toc' && guide.sections.map((section, i) => {
+            {guide.sections.map((section, i) => {
               const isActive = activeSection === section.id
               return (
                 <a
@@ -444,7 +444,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
                 </button>
               </div>
               {/* Section list */}
-              <div className="overflow-y-auto flex flex-col gap-1 px-4 py-4">
+              <div data-testid="mobile-toc-sheet" className="overflow-y-auto flex flex-col gap-1 px-4 py-4">
                 {guide.sections.map((section, i) => {
                   const isActive = activeSection === section.id
                   return (
