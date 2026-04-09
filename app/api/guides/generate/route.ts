@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto'
 import { getClient, buildSystemPrompt, fileToContentBlock } from '@/lib/anthropic'
 import type { ContentBlock } from '@/lib/anthropic'
 import type { Guide, GuideSection, ContentElement, GuideMode } from '@/types/guide'
+import logger from '@/lib/logger'
 
 const ALLOWED_TYPES = new Set(['application/pdf', 'text/plain', 'text/markdown', 'text/x-markdown'])
 
@@ -58,20 +59,25 @@ function assignIds(raw: ClaudeGuide, mode: GuideMode): Guide {
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  const log = logger.child({ route: 'POST /api/guides/generate' })
+
   const formData = await request.formData()
   const files = formData.getAll('files') as File[]
   const rawMode = formData.get('mode') ?? 'math-cs'
   if (rawMode !== 'math-cs' && rawMode !== 'humanities') {
+    log.warn({ rawMode }, 'invalid mode')
     return NextResponse.json({ error: 'Invalid mode' }, { status: 400 })
   }
   const mode: GuideMode = rawMode
 
   if (files.length === 0) {
+    log.warn('no files provided')
     return NextResponse.json({ error: 'No files provided' }, { status: 400 })
   }
 
   const badFile = files.find(f => !ALLOWED_TYPES.has(f.type))
   if (badFile) {
+    log.warn({ type: badFile.type, name: badFile.name }, 'unsupported file type')
     return NextResponse.json(
       { error: `Unsupported file type: ${badFile.type}. Allowed: PDF, plain text, markdown.` },
       { status: 400 },
@@ -82,21 +88,31 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const MAX_BYTES = 10 * 1024 * 1024 // 10 MB per file
 
   if (files.length > MAX_FILES) {
+    log.warn({ count: files.length }, 'too many files')
     return NextResponse.json({ error: `Maximum ${MAX_FILES} files allowed` }, { status: 400 })
   }
   const oversized = files.find(f => f.size > MAX_BYTES)
   if (oversized) {
+    log.warn({ name: oversized.name, size: oversized.size }, 'file too large')
     return NextResponse.json({ error: `File "${oversized.name}" exceeds 10 MB limit` }, { status: 400 })
   }
+
+  log.info({
+    mode,
+    files: files.map(f => ({ name: f.name, type: f.type, size: f.size })),
+  }, 'processing request')
 
   let contentBlocks: ContentBlock[]
   try {
     contentBlocks = await Promise.all(files.map(fileToContentBlock))
+    log.info({ count: contentBlocks.length }, 'content blocks ready')
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Failed to process uploaded files'
+    log.error({ err }, 'failed to build content blocks')
     return NextResponse.json({ error: msg }, { status: 400 })
   }
 
+  log.info({ model: 'claude-sonnet-4-6', mode }, 'calling Claude')
   const client = getClient()
   let message: Awaited<ReturnType<typeof client.messages.create>>
   try {
@@ -114,14 +130,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         },
       ],
     })
+    log.info({
+      stop_reason: message.stop_reason,
+      input_tokens: message.usage.input_tokens,
+      output_tokens: message.usage.output_tokens,
+    }, 'Claude responded')
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'AI service error'
+    log.error({ err }, 'Anthropic API error')
     return NextResponse.json({ error: msg }, { status: 502 })
   }
 
   const rawText = message.content.find(b => b.type === 'text')?.text ?? ''
   if (!rawText) {
     const reason = message.stop_reason === 'max_tokens' ? 'Response was truncated — try fewer or smaller files.' : 'Claude returned an empty response.'
+    log.error({ stop_reason: message.stop_reason }, 'empty response from Claude')
     return NextResponse.json({ error: reason }, { status: 500 })
   }
 
@@ -129,10 +152,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     parsed = JSON.parse(rawText)
   } catch {
+    log.error({ rawText: rawText.slice(0, 200) }, 'Claude returned invalid JSON')
     return NextResponse.json({ error: 'Claude returned invalid JSON' }, { status: 500 })
   }
 
   if (!isClaudeGuide(parsed)) {
+    log.error({ keys: Object.keys(parsed as object) }, 'Claude returned unexpected JSON structure')
     return NextResponse.json({ error: 'Claude returned unexpected JSON structure' }, { status: 500 })
   }
 
@@ -140,7 +165,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     guide = assignIds(parsed, mode)
   } catch {
+    log.error('failed to assign IDs to guide')
     return NextResponse.json({ error: 'Failed to process Claude response' }, { status: 500 })
   }
+
+  log.info({ id: guide.id, title: guide.title, sections: guide.sections.length }, 'guide generated')
   return NextResponse.json(guide)
 }
