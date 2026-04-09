@@ -62,6 +62,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
   const chatEndRef = useRef<HTMLDivElement>(null)
   const mobileChatEndRef = useRef<HTMLDivElement>(null)
   const chatInputRef = useRef<HTMLInputElement>(null)
+  const mobileChatInputRef = useRef<HTMLInputElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const MIN_CHAT_WIDTH = 220
@@ -85,7 +86,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
 
   useEffect(() => {
     if (mobileSheet !== 'chat') return
-    const id = setTimeout(() => chatInputRef.current?.focus(), 50)
+    const id = setTimeout(() => mobileChatInputRef.current?.focus(), 50)
     return () => clearTimeout(id)
   }, [mobileSheet])
 
@@ -202,6 +203,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
             prev.map(m => m.id === assistantId ? { ...m, content: m.content + chunk } : m)
           )
           chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+          mobileChatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
         },
       )
     } catch (err) {
@@ -211,7 +213,13 @@ export default function GuideView({ guide }: { guide: Guide }) {
       )
     } finally {
       setChatLoading(false)
-      setTimeout(() => chatInputRef.current?.focus(), 50)
+      setTimeout(() => {
+        if (mobileSheet === 'chat') {
+          mobileChatInputRef.current?.focus()
+        } else {
+          chatInputRef.current?.focus()
+        }
+      }, 50)
     }
   }
 
@@ -551,7 +559,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
               <div className="px-3 py-3 border-t shrink-0" style={{ borderColor: 'var(--border)' }}>
                 <div className="flex gap-2 items-center rounded-lg px-3 py-2" style={{ background: 'var(--border)' }}>
                   <input
-                    ref={chatInputRef}
+                    ref={mobileChatInputRef}
                     value={chatInput}
                     onChange={e => setChatInput(e.target.value)}
                     onKeyDown={e => {
