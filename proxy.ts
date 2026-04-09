@@ -8,7 +8,7 @@ export default auth(req => {
 
   const isPublic =
     PUBLIC_PATHS.includes(pathname) ||
-    pathname.startsWith('/api/auth')
+    pathname.startsWith('/api/auth') // sub-paths like /api/auth/callback/google
 
   if (!req.auth && !isPublic) {
     const loginUrl = new URL('/login', req.url)

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import GuideElement from '@/components/GuideElement'
 import type { ContentElement, ChatMessage } from '@/types/guide'
@@ -45,11 +45,22 @@ const SCRIPTED_RESPONSES: Record<string, string> = {
 
 export default function LandingDemo() {
   const msgIdCounter = useRef(0)
+  const streamIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [elementChats, setElementChats] = useState<Map<string, ChatMessage[]>>(new Map())
   const [elementNotes, setElementNotes] = useState<Map<string, string>>(new Map())
   const [loadingElementId, setLoadingElementId] = useState<string | null>(null)
 
+  useEffect(() => {
+    return () => {
+      if (streamIntervalRef.current) clearInterval(streamIntervalRef.current)
+    }
+  }, [])
+
   function handleAsk(element: ContentElement, question: string) {
+    if (streamIntervalRef.current) {
+      clearInterval(streamIntervalRef.current)
+      streamIntervalRef.current = null
+    }
     const userMsg: ChatMessage = {
       id: `demo-msg-${++msgIdCounter.current}`,
       role: 'user',
@@ -78,7 +89,7 @@ export default function LandingDemo() {
 
     // Stream characters one at a time
     let i = 0
-    const interval = setInterval(() => {
+    streamIntervalRef.current = setInterval(() => {
       i++
       setElementChats(prev => {
         const next = new Map(prev)
@@ -90,7 +101,8 @@ export default function LandingDemo() {
         return next
       })
       if (i >= response.length) {
-        clearInterval(interval)
+        clearInterval(streamIntervalRef.current!)
+        streamIntervalRef.current = null
         setLoadingElementId(null)
       }
     }, 20)
