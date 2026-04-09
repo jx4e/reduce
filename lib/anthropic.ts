@@ -24,7 +24,7 @@ const SCHEMA = `
     {
       "heading": "string — section title",
       "elements": [
-        { "type": "paragraph", "content": "string — markdown is supported: **bold**, *italic*, `inline code`" },
+        { "type": "paragraph", "content": "string — markdown is supported: **bold**, *italic*, inline code with backticks" },
         { "type": "heading", "content": "string", "level": 2 }, // level must be 2 or 3 only
         { "type": "formula", "content": "LaTeX string — KaTeX-compatible, no $ delimiters" },
         { "type": "code", "content": "string", "language": "python|javascript|..." },
