@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Link from 'next/link'
 import GuideElement from '@/components/GuideElement'
 import type { ContentElement, ChatMessage } from '@/types/guide'
@@ -43,17 +43,15 @@ const SCRIPTED_RESPONSES: Record<string, string> = {
     'O(log n) average-case complexity assumes the tree is reasonably balanced. In the worst case — a sorted input creating a degenerate linear tree — operations degrade to O(n). This is why self-balancing variants like AVL trees and Red-Black trees exist.',
 }
 
-let msgIdCounter = 0
-function nextId() { return `demo-msg-${++msgIdCounter}` }
-
 export default function LandingDemo() {
+  const msgIdCounter = useRef(0)
   const [elementChats, setElementChats] = useState<Map<string, ChatMessage[]>>(new Map())
   const [elementNotes, setElementNotes] = useState<Map<string, string>>(new Map())
   const [loadingElementId, setLoadingElementId] = useState<string | null>(null)
 
   function handleAsk(element: ContentElement, question: string) {
     const userMsg: ChatMessage = {
-      id: nextId(),
+      id: `demo-msg-${++msgIdCounter.current}`,
       role: 'user',
       content: question,
       contextElementId: element.id,
@@ -67,7 +65,7 @@ export default function LandingDemo() {
     setLoadingElementId(element.id)
 
     const response = SCRIPTED_RESPONSES[element.id] ?? 'Great question! This is a key concept in the material.'
-    const assistantMsgId = nextId()
+    const assistantMsgId = `demo-msg-${++msgIdCounter.current}`
 
     // Seed an empty assistant message
     setElementChats(prev => {

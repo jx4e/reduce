@@ -28,28 +28,30 @@ describe('LandingDemo', () => {
     expect(link).toHaveAttribute('href', '/register')
   })
 
-  it('typing a question and submitting calls the scripted onAsk handler', async () => {
-    jest.useFakeTimers()
-    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime })
-    render(<LandingDemo />)
+  describe('scripted response', () => {
+    beforeEach(() => jest.useFakeTimers())
+    afterEach(() => jest.useRealTimers())
 
-    // Right-click the paragraph element to open context menu
-    const paragraph = screen.getByText(/BST invariant/i)
-    await user.pointer({ keys: '[MouseRight]', target: paragraph })
+    it('typing a question and submitting calls the scripted onAsk handler', async () => {
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime })
+      render(<LandingDemo />)
 
-    // Click "Ask about this" in context menu
-    await user.click(screen.getByText(/ask about this/i))
+      // Right-click the paragraph element to open context menu
+      const paragraph = screen.getByText(/BST invariant/i)
+      await user.pointer({ keys: '[MouseRight]', target: paragraph })
 
-    // Type a question and submit
-    const input = screen.getByPlaceholderText(/what does this mean/i)
-    await user.type(input, 'explain this')
-    await user.click(screen.getByRole('button', { name: /submit question/i }))
+      // Click "Ask about this" in context menu
+      await user.click(screen.getByText(/ask about this/i))
 
-    // Advance timers to let scripted streaming complete
-    act(() => { jest.runAllTimers() })
+      // Type a question and submit
+      const input = screen.getByPlaceholderText(/what does this mean/i)
+      await user.type(input, 'explain this')
+      await user.click(screen.getByRole('button', { name: /submit question/i }))
 
-    expect(screen.getByText(/BST invariant is what makes/i)).toBeInTheDocument()
+      // Advance timers to let scripted streaming complete
+      act(() => { jest.runAllTimers() })
 
-    jest.useRealTimers()
+      expect(screen.getByText(/BST invariant is what makes/i)).toBeInTheDocument()
+    })
   })
 })
