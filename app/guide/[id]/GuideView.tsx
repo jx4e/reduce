@@ -444,7 +444,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
                 </button>
               </div>
               {/* Section list */}
-              <div data-testid="mobile-toc-sheet" className="overflow-y-auto flex flex-col gap-1 px-4 py-4">
+              <div data-testid="mobile-toc-section-list" className="overflow-y-auto flex flex-col gap-1 px-4 py-4">
                 {guide.sections.map((section, i) => {
                   const isActive = activeSection === section.id
                   return (

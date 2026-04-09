@@ -41,7 +41,7 @@ describe('GuideView — mobile bottom nav', () => {
 
     await user.click(screen.getByRole('button', { name: /contents/i }))
     expect(screen.getByRole('heading', { name: /contents/i })).toBeInTheDocument()
-    const sheet = screen.getByTestId('mobile-toc-sheet')
+    const sheet = screen.getByTestId('mobile-toc-section-list')
     expect(within(sheet).getByText('1. Introduction')).toBeInTheDocument()
     expect(within(sheet).getByText('2. Chapter Two')).toBeInTheDocument()
   })
@@ -51,7 +51,7 @@ describe('GuideView — mobile bottom nav', () => {
     render(<GuideView guide={MOCK_GUIDE} />)
 
     await user.click(screen.getByRole('button', { name: /contents/i }))
-    await user.click(within(screen.getByTestId('mobile-toc-sheet')).getByText('1. Introduction'))
+    await user.click(within(screen.getByTestId('mobile-toc-section-list')).getByText('1. Introduction'))
     expect(screen.queryByRole('heading', { name: /contents/i })).not.toBeInTheDocument()
   })
 
