@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import GuideElement from '@/components/GuideElement'
 import type { ContentElement } from '@/types/guide'
@@ -42,6 +42,33 @@ describe('GuideElement', () => {
     await user.pointer({ keys: '[MouseRight]', target: content })
     await user.click(screen.getByText('Ask about this'))
     expect(screen.getByPlaceholderText(/what does this mean/i)).toBeInTheDocument()
+  })
+
+  it('opens context menu after a 500ms long-press', () => {
+    jest.useFakeTimers()
+    render(<GuideElement element={paragraphElement} messages={[]} note="" onAsk={() => {}} onNoteChange={() => {}} />)
+    const content = screen.getByText(/Maxwell's equations/)
+
+    fireEvent.touchStart(content, { touches: [{ clientX: 100, clientY: 200 }] })
+    expect(screen.queryByText('Ask about this')).not.toBeInTheDocument()
+
+    act(() => { jest.advanceTimersByTime(500) })
+    expect(screen.getByText('Ask about this')).toBeInTheDocument()
+
+    jest.useRealTimers()
+  })
+
+  it('does not open context menu if touch ends before 500ms', () => {
+    jest.useFakeTimers()
+    render(<GuideElement element={paragraphElement} messages={[]} note="" onAsk={() => {}} onNoteChange={() => {}} />)
+    const content = screen.getByText(/Maxwell's equations/)
+
+    fireEvent.touchStart(content, { touches: [{ clientX: 100, clientY: 200 }] })
+    fireEvent.touchEnd(content)
+    act(() => { jest.advanceTimersByTime(500) })
+    expect(screen.queryByText('Ask about this')).not.toBeInTheDocument()
+
+    jest.useRealTimers()
   })
 
   it('calls onAsk with element and question when form submitted', async () => {
