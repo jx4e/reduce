@@ -7,7 +7,7 @@ export default auth(req => {
   const { pathname } = req.nextUrl
 
   const isPublic =
-    PUBLIC_PATHS.some(p => pathname.startsWith(p)) ||
+    PUBLIC_PATHS.includes(pathname) ||
     pathname.startsWith('/api/auth')
 
   if (!req.auth && !isPublic) {
