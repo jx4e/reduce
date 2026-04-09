@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import katex from 'katex'
 import hljs from 'highlight.js'
 import type { ChatMessage, ContentElement, TimelineEvent } from '@/types/guide'
@@ -9,14 +10,15 @@ interface GuideElementProps {
   element: ContentElement
   messages: ChatMessage[]
   note: string
+  loading?: boolean
   onAsk: (element: ContentElement, question: string) => void
   onNoteChange: (elementId: string, note: string) => void
 }
 
-export default function GuideElement({ element, messages, note, onAsk, onNoteChange }: GuideElementProps) {
-  const [hovered, setHovered] = useState(false)
+export default function GuideElement({ element, messages, note, loading, onAsk, onNoteChange }: GuideElementProps) {
   const [modalOpen, setModalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'chat' | 'notes'>('chat')
+  const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null)
   const [question, setQuestion] = useState('')
   const [previewHeight, setPreviewHeight] = useState(380)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -41,15 +43,34 @@ export default function GuideElement({ element, messages, note, onAsk, onNoteCha
     dragState.current = null
   }
 
-  function openModal() {
+  function openModal(tab: 'chat' | 'notes' = 'chat') {
+    setActiveTab(tab)
     setModalOpen(true)
     setTimeout(() => inputRef.current?.focus(), 50)
   }
 
   function closeModal() {
     setModalOpen(false)
-    setHovered(false)
   }
+
+  function handleContextMenu(e: React.MouseEvent) {
+    e.preventDefault()
+    setCtxMenu({ x: e.clientX, y: e.clientY })
+  }
+
+  useEffect(() => {
+    if (!ctxMenu) return
+    function close() { setCtxMenu(null) }
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') close() }
+    window.addEventListener('click', close)
+    window.addEventListener('scroll', close, true)
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('click', close)
+      window.removeEventListener('scroll', close, true)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [ctxMenu])
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -65,14 +86,11 @@ export default function GuideElement({ element, messages, note, onAsk, onNoteCha
     setQuestion('')
   }
 
-  const hasPriorMessages = messages.length > 0
-
   return (
     <div
       data-testid={`guide-element-${element.id}`}
-      className="relative group"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      className="relative"
+      onContextMenu={handleContextMenu}
     >
       {/* Content — subtle ring when modal is open */}
       <div
@@ -82,22 +100,42 @@ export default function GuideElement({ element, messages, note, onAsk, onNoteCha
         <ElementContent element={element} />
       </div>
 
-      {/* Ask button — dot badge when prior messages exist */}
-      <button
-        aria-label="Ask about this"
-        onClick={openModal}
-        className="absolute right-0 top-1 flex items-center justify-center rounded-full text-xs font-bold transition-all"
-        style={{
-          width: hasPriorMessages ? '1.75rem' : '1.5rem',
-          height: hasPriorMessages ? '1.75rem' : '1.5rem',
-          background: hasPriorMessages ? 'var(--accent)' : 'var(--accent)',
-          color: '#fff',
-          visibility: hovered && !modalOpen ? 'visible' : 'hidden',
-          boxShadow: hasPriorMessages ? '0 0 0 2px rgba(99,102,241,0.35)' : 'none',
-        }}
-      >
-        {hasPriorMessages ? messages.length : '?'}
-      </button>
+      {/* Context menu */}
+      {ctxMenu && createPortal(
+        <div
+          className="fixed z-[9999] rounded-lg border shadow-xl overflow-hidden"
+          style={{
+            top: ctxMenu.y,
+            left: ctxMenu.x,
+            background: 'var(--surface)',
+            borderColor: 'var(--border)',
+            minWidth: '11rem',
+            animation: 'fade-in 0.1s ease-out',
+          }}
+          onClick={e => e.stopPropagation()}
+        >
+          {[
+            { label: 'Ask about this', icon: 'M14 1H2C1.45 1 1 1.45 1 2v9c0 .55.45 1 1 1h2v3l3.5-3H14c.55 0 1-.45 1-1V2c0-.55-.45-1-1-1z', action: () => { setCtxMenu(null); openModal('chat') } },
+            { label: 'Add note',        icon: 'M13 1H3a2 2 0 0 0-2 2v12l3-3h9a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm-1 9H4V9h8v1zm0-3H4V6h8v1zm0-3H4V3h8v1z', action: () => { setCtxMenu(null); openModal('notes') } },
+            { label: 'Copy text',       icon: 'M10 1H4a1 1 0 0 0-1 1v1H2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-1h1a1 1 0 0 0 1-1V5l-4-4zm0 1.5L12.5 5H10V2.5zM10 13H2V4h1v8a1 1 0 0 0 1 1h6v1zm3-3H4V2h5v4h4v7z', action: () => { setCtxMenu(null); navigator.clipboard.writeText(element.content) } },
+          ].map(item => (
+            <button
+              key={item.label}
+              onClick={item.action}
+              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-left transition-colors"
+              style={{ color: 'var(--foreground)' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--border)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+            >
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" style={{ color: 'var(--muted)', flexShrink: 0 }}>
+                <path d={item.icon} />
+              </svg>
+              {item.label}
+            </button>
+          ))}
+        </div>,
+        document.body
+      )}
 
       {/* Modal */}
       {modalOpen && (
@@ -192,10 +230,11 @@ export default function GuideElement({ element, messages, note, onAsk, onNoteCha
                   <button
                     type="submit"
                     aria-label="Submit question"
-                    className="rounded-lg px-4 py-2 text-sm font-semibold shrink-0"
+                    disabled={loading}
+                    className="rounded-lg px-4 py-2 text-sm font-semibold shrink-0 disabled:opacity-50"
                     style={{ background: 'var(--accent)', color: '#fff' }}
                   >
-                    Ask →
+                    {loading ? '…' : 'Ask →'}
                   </button>
                 </form>
               </>
@@ -257,6 +296,8 @@ function ElementContent({ element }: { element: ContentElement }) {
 }
 
 function CodeBlock({ content, language }: { content: string; language?: string }) {
+  const [copied, setCopied] = useState(false)
+
   let html: string
   try {
     html = language && hljs.getLanguage(language)
@@ -265,14 +306,31 @@ function CodeBlock({ content, language }: { content: string; language?: string }
   } catch {
     html = content
   }
+
+  function handleCopy() {
+    navigator.clipboard.writeText(content)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   return (
-    <pre className="my-3 overflow-x-auto rounded-md text-sm" style={{ background: 'var(--surface)' }}>
-      <code
-        className={language ? `language-${language}` : ''}
-        style={{ display: 'block', padding: '0.75rem 1rem' }}
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
-    </pre>
+    <div className="relative my-3 group/code">
+      <pre className="overflow-x-auto rounded-md text-sm" style={{ background: 'var(--surface)' }}>
+        <code
+          className={language ? `language-${language}` : ''}
+          style={{ display: 'block', padding: '0.75rem 1rem' }}
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      </pre>
+      <button
+        onClick={handleCopy}
+        aria-label="Copy code"
+        className="absolute top-2 right-2 rounded px-2 py-1 text-xs transition-all opacity-0 group-hover/code:opacity-100"
+        style={{ background: 'var(--border)', color: copied ? 'var(--accent)' : 'var(--muted)' }}
+      >
+        {copied ? 'Copied!' : 'Copy'}
+      </button>
+    </div>
   )
 }
 
