@@ -28,6 +28,7 @@ export default function GuideElement({ element, messages, note, loading, onAsk, 
   const chatEndRef = useRef<HTMLDivElement>(null)
   const modalRef = useRef<HTMLDivElement>(null)
   const dragState = useRef<{ startY: number; startH: number } | null>(null)
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   function onDragPointerDown(e: React.PointerEvent) {
     dragState.current = { startY: e.clientY, startH: previewHeight }
@@ -60,6 +61,28 @@ export default function GuideElement({ element, messages, note, loading, onAsk, 
     e.preventDefault()
     setCtxMenu({ x: e.clientX, y: e.clientY })
   }
+
+  function handleTouchStart(e: React.TouchEvent) {
+    const touch = e.touches[0]
+    longPressTimer.current = setTimeout(() => {
+      setCtxMenu({ x: touch.clientX, y: touch.clientY })
+    }, 500)
+  }
+
+  function handleTouchEnd() {
+    if (longPressTimer.current !== null) {
+      clearTimeout(longPressTimer.current)
+      longPressTimer.current = null
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      if (longPressTimer.current !== null) {
+        clearTimeout(longPressTimer.current)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (!ctxMenu) return
@@ -94,6 +117,9 @@ export default function GuideElement({ element, messages, note, loading, onAsk, 
       data-testid={`guide-element-${element.id}`}
       className="relative"
       onContextMenu={handleContextMenu}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchMove={handleTouchEnd}
     >
       {/* Content — subtle ring when modal is open */}
       <div
