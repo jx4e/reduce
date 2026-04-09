@@ -56,6 +56,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
   const [chatWidth, setChatWidth] = useState(300)
+  const [mobileSheet, setMobileSheet] = useState<'toc' | 'chat' | null>(null)
   const chatDragRef = useRef<{ startX: number; startW: number } | null>(null)
   const [isChatDragging, setIsChatDragging] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
@@ -224,7 +225,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
         {!tocOpen && (
           <button
             onClick={() => setTocOpen(true)}
-            title="Show contents"
+            title="Show sidebar"
             className="absolute top-3 left-3 z-10 hidden md:flex items-center justify-center rounded-lg w-8 h-8 transition-colors"
             style={{ background: 'var(--border)', color: 'var(--foreground)' }}
           >
@@ -242,7 +243,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
           <div className="w-52 flex flex-col gap-1 px-4 py-6 flex-1 overflow-y-auto">
             <button
               onClick={() => setTocOpen(false)}
-              title="Hide contents"
+              title="Hide sidebar"
               className="absolute top-3 right-3 flex items-center justify-center rounded-lg w-8 h-8 transition-colors"
               style={{ background: 'transparent', color: 'var(--muted)' }}
             >
@@ -275,7 +276,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
         </aside>
 
         {/* Content */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6" style={{ scrollBehavior: 'smooth' }}>
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6 pb-20 md:pb-6" style={{ scrollBehavior: 'smooth' }}>
           <div className="max-w-2xl mx-auto flex flex-col gap-8">
             {guide.sections.map(section => (
               <section key={section.id} id={`section-${section.id}`}>
@@ -303,7 +304,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
         {!chatOpen && (
           <button
             onClick={() => { setChatOpen(true); setTimeout(() => chatInputRef.current?.focus(), 50) }}
-            title="Chat about this guide"
+            title="Toggle ask panel"
             className="absolute bottom-3 right-3 z-10 hidden md:flex items-center justify-center rounded-lg w-8 h-8 transition-colors"
             style={{ background: 'var(--border)', color: 'var(--foreground)' }}
           >
@@ -336,7 +337,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
               <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>Ask</p>
               <button
                 onClick={() => setChatOpen(false)}
-                title="Close chat"
+                title="Close ask panel"
                 className="flex items-center justify-center rounded-lg w-8 h-8 transition-colors"
                 style={{ background: 'transparent', color: 'var(--muted)' }}
               >
@@ -397,6 +398,51 @@ export default function GuideView({ guide }: { guide: Guide }) {
           </div>
         </aside>
       </div>
+
+      {/* Mobile bottom nav bar */}
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex border-t"
+        style={{
+          borderColor: 'var(--border)',
+          background: 'var(--background)',
+          paddingBottom: 'env(safe-area-inset-bottom)',
+        }}
+      >
+        <button
+          aria-label="Contents"
+          onClick={() => setMobileSheet(s => s === 'toc' ? null : 'toc')}
+          className="flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-opacity"
+          style={{ color: mobileSheet === 'toc' ? 'var(--accent)' : 'var(--muted)' }}
+        >
+          <svg width="18" height="18" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+            <path d="M2 3.5h11M2 7.5h7M2 11.5h9" />
+          </svg>
+          <span className="text-[10px] font-medium">Contents</span>
+        </button>
+        <button
+          aria-label="Guide"
+          onClick={() => setMobileSheet(null)}
+          className="flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-opacity"
+          style={{ color: mobileSheet === null ? 'var(--accent)' : 'var(--muted)' }}
+        >
+          <svg width="18" height="18" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="1" width="11" height="13" rx="1" />
+            <path d="M5 5h5M5 8h5M5 11h3" />
+          </svg>
+          <span className="text-[10px] font-medium">Guide</span>
+        </button>
+        <button
+          aria-label="Chat"
+          onClick={() => setMobileSheet(s => s === 'chat' ? null : 'chat')}
+          className="flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-opacity"
+          style={{ color: mobileSheet === 'chat' ? 'var(--accent)' : 'var(--muted)' }}
+        >
+          <svg width="18" height="18" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2 2h11a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H5l-3 2.5V3a1 1 0 0 1 1-1z" />
+          </svg>
+          <span className="text-[10px] font-medium">Chat</span>
+        </button>
+      </nav>
     </div>
   )
 }
