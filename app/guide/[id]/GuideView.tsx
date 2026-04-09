@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import GuideElement from '@/components/GuideElement'
-import ReactMarkdown from 'react-markdown'
 import type { Guide, ChatMessage, ContentElement } from '@/types/guide'
 import type { ChatRequestBody, ChatEvent } from '@/app/api/guides/[id]/chat/route'
 
@@ -49,22 +48,16 @@ async function streamChat(
 export default function GuideView({ guide }: { guide: Guide }) {
   const [elementChats, setElementChats] = useState<Map<string, ChatMessage[]>>(new Map())
   const [elementNotes, setElementNotes] = useState<Map<string, string>>(new Map())
-  const [messages, setMessages] = useState<ChatMessage[]>([])
-  const [contextElement, setContextElement] = useState<ContentElement | undefined>()
   const [activeSection, setActiveSection] = useState<string>(guide.sections[0]?.id ?? '')
-  const [globalLoading, setGlobalLoading] = useState(false)
   const [loadingElementId, setLoadingElementId] = useState<string | null>(null)
   const [tocOpen, setTocOpen] = useState(true)
-  const [askOpen, setAskOpen] = useState(true)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const abortRef = useRef<AbortController | null>(null)
 
   const context: ChatRequestBody['context'] = {
     guideTitle: guide.title,
     sectionHeadings: guide.sections.map(s => s.heading),
   }
 
-  // Initialise active section from URL hash on mount
   useEffect(() => {
     const hash = window.location.hash
     if (hash.startsWith('#section-')) {
@@ -76,7 +69,6 @@ export default function GuideView({ guide }: { guide: Guide }) {
     }
   }, [])
 
-  // Track which section is in view
   useEffect(() => {
     const scrollEl = scrollRef.current
     if (!scrollEl) return
@@ -97,10 +89,6 @@ export default function GuideView({ guide }: { guide: Guide }) {
     scrollEl.addEventListener('scroll', updateActive, { passive: true })
     return () => scrollEl.removeEventListener('scroll', updateActive)
   }, [guide.sections])
-
-  const [input, setInput] = useState('')
-  const chatEndRef = useRef<HTMLDivElement>(null)
-  const askInputRef = useRef<HTMLInputElement>(null)
 
   async function handleAsk(element: ContentElement, question: string) {
     if (loadingElementId) return
@@ -155,117 +143,63 @@ export default function GuideView({ guide }: { guide: Guide }) {
     setElementNotes(prev => new Map(prev).set(elementId, note))
   }
 
-  async function handleSend(e: React.FormEvent) {
-    e.preventDefault()
-    if (!input.trim() || globalLoading) return
-
-    const userMsg: ChatMessage = {
-      id: nextId(),
-      role: 'user',
-      content: input.trim(),
-      contextElementId: contextElement?.id,
-      contextElementContent: contextElement?.content,
-    }
-    const assistantId = nextId()
-    const assistantMsg: ChatMessage = { id: assistantId, role: 'assistant', content: '' }
-
-    const newMessages = [...messages, userMsg, assistantMsg]
-    setMessages(newMessages)
-    setInput('')
-    setContextElement(undefined)
-    setGlobalLoading(true)
-    setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
-
-    const requestContext: ChatRequestBody['context'] = contextElement
-      ? { ...context, element: { type: contextElement.type, content: contextElement.content } }
-      : context
-
-    const history = [...messages, userMsg]
-
-    abortRef.current = new AbortController()
-    try {
-      await streamChat(
-        guide.id,
-        {
-          messages: history.map(m => ({ role: m.role, content: m.content })),
-          context: requestContext,
-        },
-        (chunk) => {
-          setMessages(prev => prev.map(m =>
-            m.id === assistantId ? { ...m, content: m.content + chunk } : m
-          ))
-          chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-        },
-        abortRef.current.signal,
-      )
-    } catch (err) {
-      if ((err as Error).name === 'AbortError') return
-      const errorText = err instanceof Error ? err.message : 'Something went wrong'
-      setMessages(prev => prev.map(m =>
-        m.id === assistantId ? { ...m, content: `Error: ${errorText}` } : m
-      ))
-    } finally {
-      setGlobalLoading(false)
-    }
-  }
-
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      {/* Guide header */}
+      {/* Header */}
       <div className="border-b px-4 py-3 flex items-center gap-3 shrink-0"
            style={{ borderColor: 'var(--border)' }}>
-        {/* Panel toggles */}
-        <div className="hidden md:flex items-center gap-1 shrink-0">
-          <PanelToggle
-            label="Contents"
-            active={tocOpen}
-            onClick={() => setTocOpen(v => !v)}
-            icon="M3 5h10M3 8h6M3 11h8"
-          />
-          <PanelToggle
-            label="Ask"
-            active={askOpen}
-            onClick={() => setAskOpen(v => !v)}
-            icon="M14 1H2C1.45 1 1 1.45 1 2v9c0 .55.45 1 1 1h2v3l3.5-3H14c.55 0 1-.45 1-1V2c0-.55-.45-1-1-1z"
-          />
-        </div>
+        <button
+          onClick={() => setTocOpen(v => !v)}
+          title={tocOpen ? 'Hide contents' : 'Show contents'}
+          className="hidden md:flex items-center justify-center rounded p-1.5 transition-colors shrink-0"
+          style={{
+            color: tocOpen ? 'var(--foreground)' : 'var(--muted)',
+            background: tocOpen ? 'var(--border)' : 'transparent',
+          }}
+        >
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+            <path d="M2 3.5h11M2 7.5h7M2 11.5h9" />
+          </svg>
+        </button>
         <h1 className="text-sm font-semibold truncate flex-1">{guide.title}</h1>
         <Link href="/" className="text-sm transition-colors shrink-0" style={{ color: 'var(--muted)' }}>
           ← Home
         </Link>
       </div>
 
-      {/* Main content area */}
+      {/* Body */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* TOC Sidebar */}
-        <aside
-          className={`${tocOpen ? 'hidden md:flex' : 'hidden'} w-52 shrink-0 flex-col gap-1 border-r px-4 py-6 overflow-y-auto`}
-          style={{ borderColor: 'var(--border)' }}
-        >
-          <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>
-            Contents
-          </p>
-          {guide.sections.map((section, i) => {
-            const isActive = activeSection === section.id
-            return (
-              <a
-                key={section.id}
-                href={`#section-${section.id}`}
-                onClick={() => setActiveSection(section.id)}
-                className="text-xs py-1.5 px-2 rounded transition-colors"
-                style={{
-                  color: isActive ? 'var(--foreground)' : 'var(--muted)',
-                  fontWeight: isActive ? '600' : '400',
-                  background: isActive ? 'var(--border)' : 'transparent',
-                }}
-              >
-                {i + 1}. {section.heading}
-              </a>
-            )
-          })}
-        </aside>
+        {tocOpen && (
+          <aside
+            className="hidden md:flex w-52 shrink-0 flex-col gap-1 border-r px-4 py-6 overflow-y-auto"
+            style={{ borderColor: 'var(--border)' }}
+          >
+            <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>
+              Contents
+            </p>
+            {guide.sections.map((section, i) => {
+              const isActive = activeSection === section.id
+              return (
+                <a
+                  key={section.id}
+                  href={`#section-${section.id}`}
+                  onClick={() => setActiveSection(section.id)}
+                  className="text-xs py-1.5 px-2 rounded transition-colors"
+                  style={{
+                    color: isActive ? 'var(--foreground)' : 'var(--muted)',
+                    fontWeight: isActive ? '600' : '400',
+                    background: isActive ? 'var(--border)' : 'transparent',
+                  }}
+                >
+                  {i + 1}. {section.heading}
+                </a>
+              )
+            })}
+          </aside>
+        )}
 
-        {/* Scrollable content */}
+        {/* Content */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6" style={{ scrollBehavior: 'smooth' }}>
           <div className="max-w-2xl mx-auto flex flex-col gap-8">
             {guide.sections.map(section => (
@@ -289,136 +223,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
             <div className="h-[75vh]" aria-hidden="true" />
           </div>
         </div>
-
-        {/* Ask pane (right) */}
-        <aside
-          className={`${askOpen ? 'hidden md:flex' : 'hidden'} w-72 shrink-0 flex-col border-l`}
-          style={{ borderColor: 'var(--border)' }}
-        >
-          <div className="px-4 py-3 border-b shrink-0" style={{ borderColor: 'var(--border)' }}>
-            <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>Ask</p>
-          </div>
-
-          <div role="log" className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-3">
-            {messages.length === 0 && (
-              <p className="text-xs mt-2" style={{ color: 'var(--muted-dark)' }}>
-                Ask anything about this guide, or right-click any element to ask about it specifically.
-              </p>
-            )}
-            {messages.map(msg => (
-              <div key={msg.id} className={`flex flex-col gap-1 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-                {msg.contextElementContent && (
-                  <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--border)', color: 'var(--muted)' }}>
-                    re: {msg.contextElementContent.slice(0, 35)}…
-                  </span>
-                )}
-                <div
-                  className="max-w-[90%] rounded-xl px-3 py-2 text-xs leading-relaxed"
-                  style={{
-                    background: msg.role === 'user' ? 'var(--accent)' : 'var(--surface)',
-                    color: msg.role === 'user' ? '#fff' : 'var(--foreground)',
-                  }}
-                >
-                  {msg.role === 'assistant'
-                    ? (msg.content ? <PaneMarkdown content={msg.content} /> : <TypingDots />)
-                    : msg.content}
-                </div>
-              </div>
-            ))}
-            <div ref={chatEndRef} />
-          </div>
-
-          <form onSubmit={handleSend} className="shrink-0 border-t px-3 py-3 flex flex-col gap-2" style={{ borderColor: 'var(--border)' }}>
-            {contextElement && (
-              <div className="flex items-center justify-between rounded px-2 py-1 text-xs" style={{ background: 'var(--border)', color: 'var(--muted)' }}>
-                <span className="truncate">re: {contextElement.content.slice(0, 40)}</span>
-                <button type="button" onClick={() => setContextElement(undefined)} className="ml-2 shrink-0">×</button>
-              </div>
-            )}
-            <div className="flex items-center gap-2">
-              <input
-                ref={askInputRef}
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                placeholder="Ask anything…"
-                className="flex-1 bg-transparent text-xs outline-none"
-                style={{ color: 'var(--foreground)' }}
-              />
-              <button
-                type="submit"
-                disabled={!input.trim() || globalLoading}
-                className="text-sm font-semibold disabled:opacity-30 transition-opacity"
-                style={{ color: 'var(--accent)' }}
-              >
-                {globalLoading ? '…' : '→'}
-              </button>
-            </div>
-          </form>
-        </aside>
       </div>
     </div>
-  )
-}
-
-function PanelToggle({ label, active, onClick, icon }: {
-  label: string
-  active: boolean
-  onClick: () => void
-  icon: string
-}) {
-  return (
-    <button
-      onClick={onClick}
-      title={`${active ? 'Hide' : 'Show'} ${label}`}
-      className="flex items-center gap-1.5 rounded px-2 py-1.5 text-xs font-medium transition-colors"
-      style={{
-        background: active ? 'var(--border)' : 'transparent',
-        color: active ? 'var(--foreground)' : 'var(--muted)',
-      }}
-    >
-      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-        <path d={icon} />
-      </svg>
-      {label}
-    </button>
-  )
-}
-
-function PaneMarkdown({ content }: { content: string }) {
-  return (
-    <ReactMarkdown
-      components={{
-        p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
-        ul: ({ children }) => <ul className="list-disc pl-3 mb-1 space-y-0.5">{children}</ul>,
-        ol: ({ children }) => <ol className="list-decimal pl-3 mb-1 space-y-0.5">{children}</ol>,
-        li: ({ children }) => <li>{children}</li>,
-        code: ({ children }) => (
-          <code className="rounded px-1 py-0.5 font-mono" style={{ background: 'var(--border)', fontSize: '0.7rem' }}>
-            {children}
-          </code>
-        ),
-        strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-      }}
-    >
-      {content}
-    </ReactMarkdown>
-  )
-}
-
-function TypingDots() {
-  return (
-    <span className="inline-flex gap-1 items-center" aria-label="Typing">
-      {[0, 1, 2].map(i => (
-        <span
-          key={i}
-          className="rounded-full"
-          style={{
-            width: 4, height: 4,
-            background: 'var(--muted)',
-            animation: `loading-pulse 1.2s ease-in-out ${i * 0.2}s infinite`,
-          }}
-        />
-      ))}
-    </span>
   )
 }
