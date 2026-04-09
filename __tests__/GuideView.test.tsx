@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import GuideView from '@/app/guide/[id]/GuideView'
 import type { Guide } from '@/types/guide'
 
