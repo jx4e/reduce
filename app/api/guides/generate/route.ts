@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { randomUUID } from 'crypto'
 import { getClient, buildSystemPrompt, fileToContentBlock } from '@/lib/anthropic'
 import type { ContentBlock } from '@/lib/anthropic'
@@ -58,125 +58,179 @@ function assignIds(raw: ClaudeGuide, mode: GuideMode): Guide {
   }
 }
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
-  const log = logger.child({ route: 'POST /api/guides/generate' })
+// SSE event types the client receives
+export type GenerateEvent =
+  | { type: 'stage'; stage: 'parsing' | 'analyzing' | 'writing' | 'rendering' }
+  | { type: 'done'; guide: Guide }
+  | { type: 'error'; message: string }
 
+export async function POST(request: NextRequest): Promise<Response> {
+  const log = logger.child({ route: 'POST /api/guides/generate' })
+  const encoder = new TextEncoder()
+
+  function send(controller: ReadableStreamDefaultController, event: GenerateEvent) {
+    controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`))
+  }
+
+  // Validate inputs before opening the stream so we can still return HTTP errors
   const formData = await request.formData()
   const files = formData.getAll('files') as File[]
   const rawMode = formData.get('mode') ?? 'math-cs'
+
   if (rawMode !== 'math-cs' && rawMode !== 'humanities') {
     log.warn({ rawMode }, 'invalid mode')
-    return NextResponse.json({ error: 'Invalid mode' }, { status: 400 })
+    return new Response(JSON.stringify({ error: 'Invalid mode' }), { status: 400 })
   }
   const mode: GuideMode = rawMode
 
   if (files.length === 0) {
-    log.warn('no files provided')
-    return NextResponse.json({ error: 'No files provided' }, { status: 400 })
+    return new Response(JSON.stringify({ error: 'No files provided' }), { status: 400 })
   }
 
   const badFile = files.find(f => !ALLOWED_TYPES.has(f.type))
   if (badFile) {
-    log.warn({ type: badFile.type, name: badFile.name }, 'unsupported file type')
-    return NextResponse.json(
-      { error: `Unsupported file type: ${badFile.type}. Allowed: PDF, plain text, markdown.` },
+    return new Response(
+      JSON.stringify({ error: `Unsupported file type: ${badFile.type}. Allowed: PDF, plain text, markdown.` }),
       { status: 400 },
     )
   }
 
   const MAX_FILES = 5
-  const MAX_BYTES = 10 * 1024 * 1024 // 10 MB per file
+  const MAX_BYTES = 10 * 1024 * 1024
 
   if (files.length > MAX_FILES) {
-    log.warn({ count: files.length }, 'too many files')
-    return NextResponse.json({ error: `Maximum ${MAX_FILES} files allowed` }, { status: 400 })
+    return new Response(JSON.stringify({ error: `Maximum ${MAX_FILES} files allowed` }), { status: 400 })
   }
   const oversized = files.find(f => f.size > MAX_BYTES)
   if (oversized) {
-    log.warn({ name: oversized.name, size: oversized.size }, 'file too large')
-    return NextResponse.json({ error: `File "${oversized.name}" exceeds 10 MB limit` }, { status: 400 })
+    return new Response(
+      JSON.stringify({ error: `File "${oversized.name}" exceeds 10 MB limit` }),
+      { status: 400 },
+    )
   }
 
-  log.info({
-    mode,
-    files: files.map(f => ({ name: f.name, type: f.type, size: f.size })),
-  }, 'processing request')
+  log.info({ mode, files: files.map(f => ({ name: f.name, size: f.size })) }, 'starting generation')
 
-  let contentBlocks: ContentBlock[]
-  try {
-    contentBlocks = await Promise.all(files.map(fileToContentBlock))
-    log.info({ count: contentBlocks.length }, 'content blocks ready')
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : 'Failed to process uploaded files'
-    log.error({ err }, 'failed to build content blocks')
-    return NextResponse.json({ error: msg }, { status: 400 })
-  }
+  const stream = new ReadableStream({
+    async start(controller) {
+      try {
+        // Stage 1: Parsing
+        send(controller, { type: 'stage', stage: 'parsing' })
+        let contentBlocks: ContentBlock[]
+        try {
+          contentBlocks = await Promise.all(files.map(fileToContentBlock))
+          log.info({ count: contentBlocks.length }, 'content blocks ready')
+        } catch (err) {
+          const message = err instanceof Error ? err.message : 'Failed to process uploaded files'
+          log.error({ err }, 'failed to build content blocks')
+          send(controller, { type: 'error', message })
+          controller.close()
+          return
+        }
 
-  log.info({ model: 'claude-sonnet-4-6', mode }, 'calling Claude')
-  const client = getClient()
-  let message: Awaited<ReturnType<typeof client.messages.create>>
-  try {
-    message = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 8192,
-      system: buildSystemPrompt(mode),
-      messages: [
-        {
-          role: 'user',
-          content: [
-            ...contentBlocks,
-            { type: 'text', text: 'Generate a study guide from the material above.' },
-          ],
-        },
-      ],
-    })
-    log.info({
-      stop_reason: message.stop_reason,
-      input_tokens: message.usage.input_tokens,
-      output_tokens: message.usage.output_tokens,
-    }, 'Claude responded')
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : 'AI service error'
-    log.error({ err }, 'Anthropic API error')
-    return NextResponse.json({ error: msg }, { status: 502 })
-  }
+        // Stage 2: Analyzing — call Claude with streaming
+        send(controller, { type: 'stage', stage: 'analyzing' })
+        log.info({ model: 'claude-sonnet-4-6', mode }, 'calling Claude')
 
-  const rawText = message.content.find(b => b.type === 'text')?.text ?? ''
-  if (!rawText) {
-    const reason = message.stop_reason === 'max_tokens' ? 'Response was truncated — try fewer or smaller files.' : 'Claude returned an empty response.'
-    log.error({ stop_reason: message.stop_reason }, 'empty response from Claude')
-    return NextResponse.json({ error: reason }, { status: 500 })
-  }
+        const client = getClient()
+        let rawText = ''
+        try {
+          const claudeStream = client.messages.stream({
+            model: 'claude-sonnet-4-6',
+            max_tokens: 8192,
+            system: buildSystemPrompt(mode),
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  ...contentBlocks,
+                  { type: 'text', text: 'Generate a study guide from the material above.' },
+                ],
+              },
+            ],
+          })
 
-  // Strip markdown code fences if Claude wrapped the JSON despite instructions
-  const jsonText = rawText
-    .replace(/^```(?:json)?\s*/i, '')
-    .replace(/\s*```\s*$/, '')
-    .trim()
+          // Advance to Writing once first token arrives
+          let writingSignalled = false
+          claudeStream.on('text', chunk => {
+            rawText += chunk
+            if (!writingSignalled) {
+              writingSignalled = true
+              send(controller, { type: 'stage', stage: 'writing' })
+            }
+          })
 
-  log.debug({ jsonText: jsonText.slice(0, 300) }, 'attempting JSON parse')
+          const finalMessage = await claudeStream.finalMessage()
+          log.info({
+            stop_reason: finalMessage.stop_reason,
+            input_tokens: finalMessage.usage.input_tokens,
+            output_tokens: finalMessage.usage.output_tokens,
+          }, 'Claude finished')
+        } catch (err) {
+          const message = err instanceof Error ? err.message : 'AI service error'
+          log.error({ err }, 'Anthropic API error')
+          send(controller, { type: 'error', message })
+          controller.close()
+          return
+        }
 
-  let parsed: ClaudeGuide
-  try {
-    parsed = JSON.parse(jsonText)
-  } catch {
-    log.error({ rawText: rawText.slice(0, 500) }, 'Claude returned invalid JSON')
-    return NextResponse.json({ error: 'Claude returned invalid JSON' }, { status: 500 })
-  }
+        // Stage 3: Rendering — parse and assemble guide
+        send(controller, { type: 'stage', stage: 'rendering' })
 
-  if (!isClaudeGuide(parsed)) {
-    log.error({ keys: Object.keys(parsed as object) }, 'Claude returned unexpected JSON structure')
-    return NextResponse.json({ error: 'Claude returned unexpected JSON structure' }, { status: 500 })
-  }
+        if (!rawText) {
+          send(controller, { type: 'error', message: 'Claude returned an empty response.' })
+          controller.close()
+          return
+        }
 
-  let guide: Guide
-  try {
-    guide = assignIds(parsed, mode)
-  } catch {
-    log.error('failed to assign IDs to guide')
-    return NextResponse.json({ error: 'Failed to process Claude response' }, { status: 500 })
-  }
+        const jsonText = rawText
+          .replace(/^```(?:json)?\s*/i, '')
+          .replace(/\s*```\s*$/, '')
+          .trim()
 
-  log.info({ id: guide.id, title: guide.title, sections: guide.sections.length }, 'guide generated')
-  return NextResponse.json(guide)
+        let parsed: ClaudeGuide
+        try {
+          parsed = JSON.parse(jsonText)
+        } catch {
+          log.error({ rawText: rawText.slice(0, 500) }, 'Claude returned invalid JSON')
+          send(controller, { type: 'error', message: 'Claude returned invalid JSON' })
+          controller.close()
+          return
+        }
+
+        if (!isClaudeGuide(parsed)) {
+          log.error({ keys: Object.keys(parsed as object) }, 'unexpected JSON structure')
+          send(controller, { type: 'error', message: 'Claude returned unexpected JSON structure' })
+          controller.close()
+          return
+        }
+
+        let guide: Guide
+        try {
+          guide = assignIds(parsed, mode)
+        } catch {
+          send(controller, { type: 'error', message: 'Failed to process Claude response' })
+          controller.close()
+          return
+        }
+
+        log.info({ id: guide.id, title: guide.title, sections: guide.sections.length }, 'guide generated')
+        send(controller, { type: 'done', guide })
+        controller.close()
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unexpected error'
+        log.error({ err }, 'unhandled error in generation stream')
+        send(controller, { type: 'error', message })
+        controller.close()
+      }
+    },
+  })
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    },
+  })
 }

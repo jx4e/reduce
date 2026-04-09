@@ -6,9 +6,16 @@ import Link from 'next/link'
 import Stepper from '@/components/Stepper'
 import { consumePending } from '@/lib/pendingGeneration'
 import { saveGuide } from '@/lib/guideStorage'
-import type { Guide } from '@/types/guide'
+import type { GenerateEvent } from '@/app/api/guides/generate/route'
 
 const STAGES = ['Parsing', 'Analyzing', 'Writing', 'Rendering']
+
+const STAGE_INDEX: Record<string, number> = {
+  parsing: 0,
+  analyzing: 1,
+  writing: 2,
+  rendering: 3,
+}
 
 export default function GeneratePage() {
   const router = useRouter()
@@ -17,7 +24,6 @@ export default function GeneratePage() {
   const started = useRef(false)
 
   useEffect(() => {
-    // Guard against double-invocation in React Strict Mode
     if (started.current) return
     started.current = true
 
@@ -27,12 +33,6 @@ export default function GeneratePage() {
       return
     }
 
-    // Animate the stepper while the fetch runs
-    const interval = setInterval(() => {
-      setCurrentStage(s => Math.min(s + 1, STAGES.length - 1))
-    }, 1500)
-
-    // Run the real generation
     ;(async () => {
       try {
         const formData = new FormData()
@@ -40,22 +40,44 @@ export default function GeneratePage() {
         formData.append('mode', pending.mode)
 
         const res = await fetch('/api/guides/generate', { method: 'POST', body: formData })
+
         if (!res.ok) {
           const body = await res.json().catch(() => ({ error: 'Generation failed' }))
           throw new Error(body.error ?? 'Generation failed')
         }
 
-        const guide: Guide = await res.json()
-        saveGuide(guide)
-        clearInterval(interval)
-        router.push(`/guide/${guide.id}`)
+        const reader = res.body!.getReader()
+        const decoder = new TextDecoder()
+        let buffer = ''
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split('\n')
+          buffer = lines.pop() ?? '' // keep incomplete last line
+
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue
+            const event: GenerateEvent = JSON.parse(line.slice(6))
+
+            if (event.type === 'stage') {
+              setCurrentStage(STAGE_INDEX[event.stage] ?? 0)
+            } else if (event.type === 'done') {
+              setCurrentStage(STAGES.length - 1)
+              saveGuide(event.guide)
+              router.push(`/guide/${event.guide.id}`)
+              return
+            } else if (event.type === 'error') {
+              throw new Error(event.message)
+            }
+          }
+        }
       } catch (err) {
-        clearInterval(interval)
         setError(err instanceof Error ? err.message : 'Something went wrong')
       }
     })()
-
-    return () => clearInterval(interval)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -68,11 +90,7 @@ export default function GeneratePage() {
         <p className="text-xs max-w-sm" style={{ color: 'var(--muted)' }}>
           {error}
         </p>
-        <Link
-          href="/"
-          className="text-xs font-semibold"
-          style={{ color: 'var(--accent)' }}
-        >
+        <Link href="/" className="text-xs font-semibold" style={{ color: 'var(--accent)' }}>
           ← Try again
         </Link>
       </div>
