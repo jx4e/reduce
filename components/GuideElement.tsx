@@ -77,6 +77,14 @@ export default function GuideElement({ element, messages, note, loading, onAsk, 
   }
 
   useEffect(() => {
+    return () => {
+      if (longPressTimer.current !== null) {
+        clearTimeout(longPressTimer.current)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
     if (!ctxMenu) return
     function close() { setCtxMenu(null) }
     function onKey(e: KeyboardEvent) { if (e.key === 'Escape') close() }
