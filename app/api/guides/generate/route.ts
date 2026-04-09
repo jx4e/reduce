@@ -148,11 +148,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: reason }, { status: 500 })
   }
 
+  // Strip markdown code fences if Claude wrapped the JSON despite instructions
+  const jsonText = rawText
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```\s*$/, '')
+    .trim()
+
+  log.debug({ jsonText: jsonText.slice(0, 300) }, 'attempting JSON parse')
+
   let parsed: ClaudeGuide
   try {
-    parsed = JSON.parse(rawText)
+    parsed = JSON.parse(jsonText)
   } catch {
-    log.error({ rawText: rawText.slice(0, 200) }, 'Claude returned invalid JSON')
+    log.error({ rawText: rawText.slice(0, 500) }, 'Claude returned invalid JSON')
     return NextResponse.json({ error: 'Claude returned invalid JSON' }, { status: 500 })
   }
 
