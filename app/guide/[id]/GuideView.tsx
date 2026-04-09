@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import GuideElement from '@/components/GuideElement'
+import ReactMarkdown from 'react-markdown'
 import type { Guide, ChatMessage, ContentElement } from '@/types/guide'
 import type { ChatRequestBody, ChatEvent } from '@/app/api/guides/[id]/chat/route'
 
@@ -301,7 +302,9 @@ export default function GuideView({ guide }: { guide: Guide }) {
                     color: msg.role === 'user' ? '#fff' : 'var(--foreground)',
                   }}
                 >
-                  {msg.content || (msg.role === 'assistant' && <TypingDots />)}
+                  {msg.role === 'assistant'
+                    ? (msg.content ? <PaneMarkdown content={msg.content} /> : <TypingDots />)
+                    : msg.content}
                 </div>
               </div>
             ))}
@@ -337,6 +340,27 @@ export default function GuideView({ guide }: { guide: Guide }) {
         </aside>
       </div>
     </div>
+  )
+}
+
+function PaneMarkdown({ content }: { content: string }) {
+  return (
+    <ReactMarkdown
+      components={{
+        p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
+        ul: ({ children }) => <ul className="list-disc pl-3 mb-1 space-y-0.5">{children}</ul>,
+        ol: ({ children }) => <ol className="list-decimal pl-3 mb-1 space-y-0.5">{children}</ol>,
+        li: ({ children }) => <li>{children}</li>,
+        code: ({ children }) => (
+          <code className="rounded px-1 py-0.5 font-mono" style={{ background: 'var(--border)', fontSize: '0.7rem' }}>
+            {children}
+          </code>
+        ),
+        strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+      }}
+    >
+      {content}
+    </ReactMarkdown>
   )
 }
 

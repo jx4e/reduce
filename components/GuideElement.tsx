@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import ReactMarkdown from 'react-markdown'
 import katex from 'katex'
 import hljs from 'highlight.js'
 import type { ChatMessage, ContentElement, TimelineEvent } from '@/types/guide'
@@ -207,7 +208,9 @@ export default function GuideElement({ element, messages, note, loading, onAsk, 
                           border: msg.role === 'assistant' ? '1px solid var(--border)' : 'none',
                         }}
                       >
-                        {msg.content}
+                        {msg.role === 'assistant'
+                          ? <MarkdownMessage content={msg.content} />
+                          : msg.content}
                       </div>
                     </div>
                   ))}
@@ -258,6 +261,33 @@ export default function GuideElement({ element, messages, note, loading, onAsk, 
         </div>
       )}
     </div>
+  )
+}
+
+function MarkdownMessage({ content }: { content: string }) {
+  if (!content) return null
+  return (
+    <ReactMarkdown
+      components={{
+        p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
+        ul: ({ children }) => <ul className="list-disc pl-4 mb-1 space-y-0.5">{children}</ul>,
+        ol: ({ children }) => <ol className="list-decimal pl-4 mb-1 space-y-0.5">{children}</ol>,
+        li: ({ children }) => <li>{children}</li>,
+        code: ({ children }) => (
+          <code className="rounded px-1 py-0.5 text-xs font-mono" style={{ background: 'var(--border)' }}>
+            {children}
+          </code>
+        ),
+        pre: ({ children }) => (
+          <pre className="rounded p-2 text-xs font-mono overflow-x-auto my-1" style={{ background: 'var(--border)' }}>
+            {children}
+          </pre>
+        ),
+        strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+      }}
+    >
+      {content}
+    </ReactMarkdown>
   )
 }
 
