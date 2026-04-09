@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import ReactMarkdown from 'react-markdown'
+import remarkMath from 'remark-math'
+import rehypeKatex from 'rehype-katex'
 import katex from 'katex'
 import hljs from 'highlight.js'
 import type { ChatMessage, ContentElement, TimelineEvent } from '@/types/guide'
@@ -264,10 +266,12 @@ export default function GuideElement({ element, messages, note, loading, onAsk, 
   )
 }
 
-function MarkdownMessage({ content }: { content: string }) {
+export function MarkdownMessage({ content }: { content: string }) {
   if (!content) return null
   return (
     <ReactMarkdown
+      remarkPlugins={[remarkMath]}
+      rehypePlugins={[rehypeKatex]}
       components={{
         p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
         ul: ({ children }) => <ul className="list-disc pl-4 mb-1 space-y-0.5">{children}</ul>,

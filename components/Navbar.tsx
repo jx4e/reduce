@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import ThemeToggle from './ThemeToggle'
 
 export default function Navbar() {
   return (
@@ -9,11 +10,14 @@ export default function Navbar() {
             style={{ color: 'var(--foreground)' }}>
         reduce
       </Link>
-      <Link href="/login"
-            className="text-sm transition-colors hover:opacity-80"
-            style={{ color: 'var(--muted)' }}>
-        Sign in
-      </Link>
+      <div className="flex items-center gap-3">
+        <ThemeToggle />
+        <Link href="/login"
+              className="text-sm transition-colors hover:opacity-80"
+              style={{ color: 'var(--muted)' }}>
+          Sign in
+        </Link>
+      </div>
     </nav>
   )
 }
