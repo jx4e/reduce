@@ -48,7 +48,7 @@ ${context.element.content}
 Rules:
 - Answer in 2–4 sentences maximum. If a longer answer is truly needed, use at most 3 short bullet points.
 - Stay focused on the element above.
-- Plain text only — no markdown headers or bold.`
+- Use markdown formatting where it helps clarity (bold, bullets, inline code). Avoid large headers.`
     : `You are a tutor answering questions about a study guide.
 
 Guide: "${context.guideTitle}"
@@ -56,7 +56,7 @@ Sections: ${context.sectionHeadings.join(' · ')}
 
 Rules:
 - Answer in 2–4 sentences maximum. If a longer answer is truly needed, use at most 3 short bullet points.
-- Plain text only — no markdown headers or bold.`
+- Use markdown formatting where it helps clarity (bold, bullets, inline code). Avoid large headers.`
 
   log.info({
     messageCount: messages.length,
