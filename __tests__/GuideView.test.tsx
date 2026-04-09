@@ -63,4 +63,31 @@ describe('GuideView — mobile bottom nav', () => {
     await user.click(screen.getByRole('button', { name: /guide/i }))
     expect(screen.queryByRole('heading', { name: /contents/i })).not.toBeInTheDocument()
   })
+
+  it('opens the chat sheet when Chat is tapped', async () => {
+    const user = userEvent.setup()
+    render(<GuideView guide={MOCK_GUIDE} />)
+
+    await user.click(screen.getByRole('button', { name: /^chat$/i }))
+    expect(screen.getByRole('heading', { name: /^ask$/i })).toBeInTheDocument()
+    expect(screen.getAllByPlaceholderText(/ask…/i).length).toBeGreaterThan(0)
+  })
+
+  it('closes the chat sheet when Guide button is tapped', async () => {
+    const user = userEvent.setup()
+    render(<GuideView guide={MOCK_GUIDE} />)
+
+    await user.click(screen.getByRole('button', { name: /^chat$/i }))
+    await user.click(screen.getByRole('button', { name: /guide/i }))
+    expect(screen.queryByRole('heading', { name: /^ask$/i })).not.toBeInTheDocument()
+  })
+
+  it('closes the chat sheet when backdrop is tapped', async () => {
+    const user = userEvent.setup()
+    render(<GuideView guide={MOCK_GUIDE} />)
+
+    await user.click(screen.getByRole('button', { name: /^chat$/i }))
+    await user.click(screen.getByTestId('chat-sheet-backdrop'))
+    expect(screen.queryByRole('heading', { name: /^ask$/i })).not.toBeInTheDocument()
+  })
 })

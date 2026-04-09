@@ -83,6 +83,12 @@ export default function GuideView({ guide }: { guide: Guide }) {
   }, [])
 
   useEffect(() => {
+    if (mobileSheet === 'chat') {
+      setTimeout(() => chatInputRef.current?.focus(), 50)
+    }
+  }, [mobileSheet])
+
+  useEffect(() => {
     const scrollEl = scrollRef.current
     if (!scrollEl) return
     function updateActive() {
@@ -466,6 +472,108 @@ export default function GuideView({ guide }: { guide: Guide }) {
                     </a>
                   )
                 })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Chat sheet */}
+        {mobileSheet === 'chat' && (
+          <div className="md:hidden">
+            {/* Backdrop */}
+            <div
+              data-testid="chat-sheet-backdrop"
+              className="fixed inset-0 z-30"
+              style={{ background: 'rgba(0,0,0,0.4)' }}
+              onClick={() => setMobileSheet(null)}
+            />
+            {/* Sheet */}
+            <div
+              className="fixed left-0 right-0 z-40 rounded-t-2xl border-t border-x flex flex-col"
+              style={{
+                bottom: 'calc(3.5rem + env(safe-area-inset-bottom))',
+                height: '75vh',
+                background: 'var(--background)',
+                borderColor: 'var(--border)',
+              }}
+            >
+              {/* Drag handle */}
+              <div className="flex justify-center pt-3 pb-1 shrink-0">
+                <div className="rounded-full" style={{ width: '2rem', height: '3px', background: 'var(--border)' }} />
+              </div>
+              {/* Header */}
+              <div
+                className="flex items-center justify-between px-5 py-3 border-b shrink-0"
+                style={{ borderColor: 'var(--border)' }}
+              >
+                <h2
+                  className="text-xs font-semibold uppercase tracking-widest"
+                  style={{ color: 'var(--muted)' }}
+                >
+                  Ask
+                </h2>
+                <button
+                  onClick={() => setMobileSheet(null)}
+                  aria-label="Close chat"
+                  className="flex items-center justify-center rounded-lg w-8 h-8"
+                  style={{ color: 'var(--muted)' }}
+                >
+                  <svg width="9" height="9" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                    <path d="M1 1l12 12M13 1L1 13" />
+                  </svg>
+                </button>
+              </div>
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3 min-h-0">
+                {guideMessages.length === 0 && (
+                  <p className="text-xs" style={{ color: 'var(--muted)' }}>Ask anything about this guide.</p>
+                )}
+                {guideMessages.map(msg => (
+                  <div key={msg.id} className={msg.role === 'user' ? 'flex justify-end' : ''}>
+                    <div
+                      className="text-xs rounded-lg px-3 py-2 max-w-[85%]"
+                      style={{
+                        background: msg.role === 'user' ? 'var(--border)' : 'transparent',
+                        color: 'var(--foreground)',
+                      }}
+                    >
+                      {msg.role === 'assistant'
+                        ? <MarkdownMessage content={msg.content || (chatLoading ? '…' : '')} />
+                        : msg.content}
+                    </div>
+                  </div>
+                ))}
+                <div ref={chatEndRef} />
+              </div>
+              {/* Input */}
+              <div className="px-3 py-3 border-t shrink-0" style={{ borderColor: 'var(--border)' }}>
+                <div className="flex gap-2 items-center rounded-lg px-3 py-2" style={{ background: 'var(--border)' }}>
+                  <input
+                    ref={chatInputRef}
+                    value={chatInput}
+                    onChange={e => setChatInput(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault()
+                        handleGuideChatSend()
+                      }
+                    }}
+                    placeholder="Ask…"
+                    className="flex-1 bg-transparent text-xs outline-none"
+                    style={{ color: 'var(--foreground)' }}
+                  />
+                  <button
+                    onClick={handleGuideChatSend}
+                    disabled={!chatInput.trim() || chatLoading}
+                    aria-label="Send"
+                    className="shrink-0 transition-opacity disabled:opacity-30"
+                    style={{ color: 'var(--foreground)' }}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 7.5h13M8 2l6 5.5-6 5.5" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
