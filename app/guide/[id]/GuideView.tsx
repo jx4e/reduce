@@ -54,6 +54,8 @@ export default function GuideView({ guide }: { guide: Guide }) {
   const [activeSection, setActiveSection] = useState<string>(guide.sections[0]?.id ?? '')
   const [globalLoading, setGlobalLoading] = useState(false)
   const [loadingElementId, setLoadingElementId] = useState<string | null>(null)
+  const [tocOpen, setTocOpen] = useState(true)
+  const [askOpen, setAskOpen] = useState(true)
   const scrollRef = useRef<HTMLDivElement>(null)
   const abortRef = useRef<AbortController | null>(null)
 
@@ -210,10 +212,25 @@ export default function GuideView({ guide }: { guide: Guide }) {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Guide header */}
-      <div className="border-b px-6 py-3 flex items-center justify-between shrink-0"
+      <div className="border-b px-4 py-3 flex items-center gap-3 shrink-0"
            style={{ borderColor: 'var(--border)' }}>
-        <h1 className="text-sm font-semibold truncate">{guide.title}</h1>
-        <Link href="/" className="text-sm transition-colors" style={{ color: 'var(--muted)' }}>
+        {/* Panel toggles */}
+        <div className="hidden md:flex items-center gap-1 shrink-0">
+          <PanelToggle
+            label="Contents"
+            active={tocOpen}
+            onClick={() => setTocOpen(v => !v)}
+            icon="M3 5h10M3 8h6M3 11h8"
+          />
+          <PanelToggle
+            label="Ask"
+            active={askOpen}
+            onClick={() => setAskOpen(v => !v)}
+            icon="M14 1H2C1.45 1 1 1.45 1 2v9c0 .55.45 1 1 1h2v3l3.5-3H14c.55 0 1-.45 1-1V2c0-.55-.45-1-1-1z"
+          />
+        </div>
+        <h1 className="text-sm font-semibold truncate flex-1">{guide.title}</h1>
+        <Link href="/" className="text-sm transition-colors shrink-0" style={{ color: 'var(--muted)' }}>
           ← Home
         </Link>
       </div>
@@ -222,7 +239,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* TOC Sidebar */}
         <aside
-          className="hidden md:flex w-52 shrink-0 flex-col gap-1 border-r px-4 py-6 overflow-y-auto"
+          className={`${tocOpen ? 'hidden md:flex' : 'hidden'} w-52 shrink-0 flex-col gap-1 border-r px-4 py-6 overflow-y-auto`}
           style={{ borderColor: 'var(--border)' }}
         >
           <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>
@@ -275,7 +292,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
 
         {/* Ask pane (right) */}
         <aside
-          className="hidden md:flex w-72 shrink-0 flex-col border-l"
+          className={`${askOpen ? 'hidden md:flex' : 'hidden'} w-72 shrink-0 flex-col border-l`}
           style={{ borderColor: 'var(--border)' }}
         >
           <div className="px-4 py-3 border-b shrink-0" style={{ borderColor: 'var(--border)' }}>
@@ -340,6 +357,30 @@ export default function GuideView({ guide }: { guide: Guide }) {
         </aside>
       </div>
     </div>
+  )
+}
+
+function PanelToggle({ label, active, onClick, icon }: {
+  label: string
+  active: boolean
+  onClick: () => void
+  icon: string
+}) {
+  return (
+    <button
+      onClick={onClick}
+      title={`${active ? 'Hide' : 'Show'} ${label}`}
+      className="flex items-center gap-1.5 rounded px-2 py-1.5 text-xs font-medium transition-colors"
+      style={{
+        background: active ? 'var(--border)' : 'transparent',
+        color: active ? 'var(--foreground)' : 'var(--muted)',
+      }}
+    >
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+        <path d={icon} />
+      </svg>
+      {label}
+    </button>
   )
 }
 
