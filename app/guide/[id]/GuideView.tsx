@@ -570,7 +570,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
                     }}
                     placeholder="Ask…"
                     className="flex-1 bg-transparent text-xs outline-none"
-                    style={{ color: 'var(--foreground)' }}
+                    style={{ color: 'var(--foreground)', fontSize: '16px' }}
                   />
                   <button
                     onClick={handleGuideChatSend}
