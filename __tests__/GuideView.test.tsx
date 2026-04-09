@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import GuideView from '@/app/guide/[id]/GuideView'
 import type { Guide } from '@/types/guide'
 
@@ -32,5 +33,33 @@ describe('GuideView — mobile bottom nav', () => {
     expect(screen.getByRole('button', { name: /contents/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /guide/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /chat/i })).toBeInTheDocument()
+  })
+
+  it('opens the TOC sheet when Contents is tapped', async () => {
+    const user = userEvent.setup()
+    render(<GuideView guide={MOCK_GUIDE} />)
+
+    await user.click(screen.getByRole('button', { name: /contents/i }))
+    expect(screen.getByRole('heading', { name: /contents/i })).toBeInTheDocument()
+    expect(screen.getByText('1. Introduction')).toBeInTheDocument()
+    expect(screen.getByText('2. Chapter Two')).toBeInTheDocument()
+  })
+
+  it('closes the TOC sheet when a section link is tapped', async () => {
+    const user = userEvent.setup()
+    render(<GuideView guide={MOCK_GUIDE} />)
+
+    await user.click(screen.getByRole('button', { name: /contents/i }))
+    await user.click(screen.getByText('1. Introduction'))
+    expect(screen.queryByRole('heading', { name: /contents/i })).not.toBeInTheDocument()
+  })
+
+  it('closes the TOC sheet when Guide button is tapped', async () => {
+    const user = userEvent.setup()
+    render(<GuideView guide={MOCK_GUIDE} />)
+
+    await user.click(screen.getByRole('button', { name: /contents/i }))
+    await user.click(screen.getByRole('button', { name: /guide/i }))
+    expect(screen.queryByRole('heading', { name: /contents/i })).not.toBeInTheDocument()
   })
 })

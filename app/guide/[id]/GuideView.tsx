@@ -254,7 +254,7 @@ export default function GuideView({ guide }: { guide: Guide }) {
             <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>
               Contents
             </p>
-            {guide.sections.map((section, i) => {
+            {mobileSheet !== 'toc' && guide.sections.map((section, i) => {
               const isActive = activeSection === section.id
               return (
                 <a
@@ -397,6 +397,79 @@ export default function GuideView({ guide }: { guide: Guide }) {
             </div>
           </div>
         </aside>
+
+        {/* Mobile TOC sheet */}
+        {mobileSheet === 'toc' && (
+          <div className="md:hidden">
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 z-30"
+              style={{ background: 'rgba(0,0,0,0.4)' }}
+              onClick={() => setMobileSheet(null)}
+            />
+            {/* Sheet */}
+            <div
+              className="fixed left-0 right-0 z-40 rounded-t-2xl border-t border-x flex flex-col"
+              style={{
+                bottom: 'calc(3.5rem + env(safe-area-inset-bottom))',
+                height: '75vh',
+                background: 'var(--background)',
+                borderColor: 'var(--border)',
+              }}
+            >
+              {/* Drag handle */}
+              <div className="flex justify-center pt-3 pb-1 shrink-0">
+                <div className="rounded-full" style={{ width: '2rem', height: '3px', background: 'var(--border)' }} />
+              </div>
+              {/* Header */}
+              <div
+                className="flex items-center justify-between px-5 py-3 border-b shrink-0"
+                style={{ borderColor: 'var(--border)' }}
+              >
+                <h2
+                  className="text-xs font-semibold uppercase tracking-widest"
+                  style={{ color: 'var(--muted)' }}
+                >
+                  Contents
+                </h2>
+                <button
+                  onClick={() => setMobileSheet(null)}
+                  aria-label="Close contents"
+                  className="flex items-center justify-center rounded-lg w-8 h-8"
+                  style={{ color: 'var(--muted)' }}
+                >
+                  <svg width="9" height="9" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                    <path d="M1 1l12 12M13 1L1 13" />
+                  </svg>
+                </button>
+              </div>
+              {/* Section list */}
+              <div className="overflow-y-auto flex flex-col gap-1 px-4 py-4">
+                {guide.sections.map((section, i) => {
+                  const isActive = activeSection === section.id
+                  return (
+                    <a
+                      key={section.id}
+                      href={`#section-${section.id}`}
+                      onClick={() => {
+                        setActiveSection(section.id)
+                        setMobileSheet(null)
+                      }}
+                      className="text-xs py-1.5 px-2 rounded transition-colors"
+                      style={{
+                        color: isActive ? 'var(--foreground)' : 'var(--muted)',
+                        fontWeight: isActive ? '600' : '400',
+                        background: isActive ? 'var(--border)' : 'transparent',
+                      }}
+                    >
+                      {i + 1}. {section.heading}
+                    </a>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Mobile bottom nav bar */}
