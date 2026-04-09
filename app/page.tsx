@@ -6,7 +6,6 @@ import UploadZone from '@/components/UploadZone'
 import GuideCard from '@/components/GuideCard'
 import type { GuideCardData, GuideMode } from '@/types/guide'
 import { setPending } from '@/lib/pendingGeneration'
-import { listGuides } from '@/lib/guideStorage'
 
 export default function HomePage() {
   const router = useRouter()
@@ -15,7 +14,10 @@ export default function HomePage() {
   const [guides, setGuides] = useState<GuideCardData[]>([])
 
   useEffect(() => {
-    setGuides(listGuides())
+    fetch('/api/guides')
+      .then(r => r.json())
+      .then(setGuides)
+      .catch(() => {})
   }, [])
 
   function handleGenerate() {
