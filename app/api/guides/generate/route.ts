@@ -4,6 +4,7 @@ import { getClient, buildSystemPrompt, fileToContentBlock } from '@/lib/anthropi
 import type { ContentBlock } from '@/lib/anthropic'
 import type { Guide, GuideSection, ContentElement, GuideMode } from '@/types/guide'
 import logger from '@/lib/logger'
+import { auth } from '@/auth'
 
 const ALLOWED_TYPES = new Set(['application/pdf', 'text/plain', 'text/markdown', 'text/x-markdown'])
 
@@ -65,6 +66,11 @@ export type GenerateEvent =
   | { type: 'error'; message: string }
 
 export async function POST(request: NextRequest): Promise<Response> {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
+  }
+
   const log = logger.child({ route: 'POST /api/guides/generate' })
   const encoder = new TextEncoder()
 
