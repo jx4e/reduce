@@ -15,7 +15,7 @@ export async function GET() {
     select: { id: true, title: true, mode: true, createdAt: true },
   })
 
-  const guides: GuideCardData[] = rows.map(r => ({
+  const guides: GuideCardData[] = rows.map((r: typeof rows[number]) => ({
     id: r.id,
     title: r.title,
     mode: r.mode as GuideCardData['mode'],
