@@ -8,7 +8,7 @@ export default function Loading() {
         className="text-2xl font-bold tracking-tight"
         style={{ color: 'var(--foreground)', animation: 'loading-pulse 1.2s ease-in-out infinite' }}
       >
-        reduce
+        tldr.
       </span>
     </div>
   )

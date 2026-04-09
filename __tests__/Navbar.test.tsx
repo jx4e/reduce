@@ -16,7 +16,7 @@ describe('Navbar', () => {
   it('renders the brand name', async () => {
     ;(auth as jest.Mock).mockResolvedValue(null)
     render(await Navbar())
-    expect(screen.getByText('reduce')).toBeInTheDocument()
+    expect(screen.getByText('tldr.')).toBeInTheDocument()
   })
 
   it('renders sign in link when not authenticated', async () => {

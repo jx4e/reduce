@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'reduce — AI study guides',
+  title: 'tldr. — AI study guides',
   description:
     'Upload your lecture notes, slides, or PDFs and get a structured, interactive study guide back.',
 }

@@ -16,7 +16,7 @@ export default async function Navbar() {
         className="text-sm font-semibold tracking-tight"
         style={{ color: 'var(--foreground)' }}
       >
-        reduce
+        tldr.
       </Link>
       <div className="flex items-center gap-3">
         <ThemeToggle />

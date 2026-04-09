@@ -1,0 +1,104 @@
+<h2>Demo section</h2>
+<p class="subtitle">Mini interactive study guide. Sections expand on click — gives a feel for the real product.</p>
+
+<div class="mockup">
+  <div class="mockup-header">Demo widget — embedded in landing page</div>
+  <div class="mockup-body" style="background:#0a0a0a;padding:40px 32px">
+
+    <div style="text-align:center;margin-bottom:32px">
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#6366f1;margin-bottom:12px">See it in action</div>
+      <h2 style="font-size:28px;font-weight:700;letter-spacing:-0.02em;color:#f5f5f5;margin:0 0 8px">From notes to guide in seconds.</h2>
+      <p style="color:#737373;font-size:14px;margin:0">Here's a sample guide — click any section to expand it.</p>
+    </div>
+
+    <!-- Mini guide widget -->
+    <div style="max-width:640px;margin:0 auto;border:1px solid #1f1f1f;border-radius:12px;background:#111;overflow:hidden">
+
+      <!-- Guide header -->
+      <div style="padding:20px 24px;border-bottom:1px solid #1f1f1f">
+        <div style="font-size:11px;color:#6366f1;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px">Binary Search Trees</div>
+        <div style="font-size:18px;font-weight:700;color:#f5f5f5;letter-spacing:-0.01em">Data Structures — Week 4</div>
+        <div style="font-size:12px;color:#737373;margin-top:4px">4 sections · ~12 min read</div>
+      </div>
+
+      <!-- Section 1 — expanded -->
+      <div style="border-bottom:1px solid #1f1f1f">
+        <div onclick="toggleSection(this)" style="padding:16px 24px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:24px;height:24px;border-radius:6px;background:#6366f115;display:flex;align-items:center;justify-content:center;font-size:11px;color:#6366f1;font-weight:700">1</div>
+            <span style="font-size:14px;font-weight:600;color:#f5f5f5">What is a BST?</span>
+          </div>
+          <span class="chevron" style="color:#737373;font-size:12px;transition:transform 0.2s">▼</span>
+        </div>
+        <div class="section-body" style="padding:0 24px 16px;border-top:1px solid #1f1f1f">
+          <p style="font-size:13px;color:#a3a3a3;line-height:1.7;margin:12px 0 0">A <strong style="color:#f5f5f5">binary search tree</strong> is a node-based data structure where each node has at most two children. For any node, all values in the left subtree are smaller, and all values in the right subtree are larger.</p>
+          <div style="margin-top:12px;background:#0a0a0a;border:1px solid #1f1f1f;border-radius:6px;padding:12px;font-family:monospace;font-size:12px;color:#a3a3a3">
+            <span style="color:#6366f1">BST property:</span> left.val &lt; node.val &lt; right.val
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2 — collapsed -->
+      <div style="border-bottom:1px solid #1f1f1f">
+        <div onclick="toggleSection(this)" style="padding:16px 24px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:24px;height:24px;border-radius:6px;background:#1f1f1f;display:flex;align-items:center;justify-content:center;font-size:11px;color:#737373;font-weight:700">2</div>
+            <span style="font-size:14px;font-weight:600;color:#f5f5f5">Search &amp; Insertion</span>
+          </div>
+          <span class="chevron" style="color:#737373;font-size:12px;transition:transform 0.2s">▶</span>
+        </div>
+        <div class="section-body" style="display:none;padding:0 24px 16px;border-top:1px solid #1f1f1f">
+          <p style="font-size:13px;color:#a3a3a3;line-height:1.7;margin:12px 0 0">Search starts at the root and compares the target value: go left if smaller, right if larger. Insertion follows the same path and adds the new node at the correct leaf position. Both operations run in <strong style="color:#f5f5f5">O(h)</strong> time where h is the tree height.</p>
+        </div>
+      </div>
+
+      <!-- Section 3 — collapsed -->
+      <div style="border-bottom:1px solid #1f1f1f">
+        <div onclick="toggleSection(this)" style="padding:16px 24px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:24px;height:24px;border-radius:6px;background:#1f1f1f;display:flex;align-items:center;justify-content:center;font-size:11px;color:#737373;font-weight:700">3</div>
+            <span style="font-size:14px;font-weight:600;color:#f5f5f5">Time Complexity</span>
+          </div>
+          <span class="chevron" style="color:#737373;font-size:12px;transition:transform 0.2s">▶</span>
+        </div>
+        <div class="section-body" style="display:none;padding:0 24px 16px;border-top:1px solid #1f1f1f">
+          <p style="font-size:13px;color:#a3a3a3;line-height:1.7;margin:12px 0 0">Average case: O(log n) for search, insert, delete. Worst case (degenerate tree): O(n). Balanced BSTs like AVL trees and Red-Black trees guarantee O(log n) worst case.</p>
+        </div>
+      </div>
+
+      <!-- Section 4 — collapsed -->
+      <div>
+        <div onclick="toggleSection(this)" style="padding:16px 24px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:24px;height:24px;border-radius:6px;background:#1f1f1f;display:flex;align-items:center;justify-content:center;font-size:11px;color:#737373;font-weight:700">4</div>
+            <span style="font-size:14px;font-weight:600;color:#f5f5f5">In-order Traversal</span>
+          </div>
+          <span class="chevron" style="color:#737373;font-size:12px;transition:transform 0.2s">▶</span>
+        </div>
+        <div class="section-body" style="display:none;padding:0 24px 16px;border-top:1px solid #1f1f1f">
+          <p style="font-size:13px;color:#a3a3a3;line-height:1.7;margin:12px 0 0">In-order traversal (left → root → right) of a BST always produces values in sorted ascending order. This property makes BSTs useful for implementing sorted sets and maps.</p>
+        </div>
+      </div>
+
+      <!-- Mini CTA at bottom of widget -->
+      <div style="padding:16px 24px;background:#0d0d0d;border-top:1px solid #1f1f1f;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:12px;color:#404040">Upload your own notes to generate a guide like this</span>
+        <div style="background:#6366f1;color:#fff;font-size:12px;font-weight:600;padding:6px 14px;border-radius:9999px;cursor:pointer;white-space:nowrap">Try it free →</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleSection(header) {
+  const body = header.nextElementSibling;
+  const chevron = header.querySelector('.chevron');
+  const numBadge = header.querySelector('div > div');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  chevron.textContent = isOpen ? '▶' : '▼';
+  numBadge.style.background = isOpen ? '#1f1f1f' : '#6366f115';
+  numBadge.style.color = isOpen ? '#737373' : '#6366f1';
+}
+</script>

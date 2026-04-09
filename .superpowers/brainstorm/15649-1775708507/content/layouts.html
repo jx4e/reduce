@@ -1,0 +1,72 @@
+<h2>Landing page layout approaches</h2>
+<p class="subtitle">Pick the structure that feels right. The demo section is the mini interactive guide preview.</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#0d0d0d;border-radius:6px;font-family:monospace;font-size:11px;line-height:1.6;color:#888">
+      <div style="color:#6366f1;font-weight:700;font-size:13px;margin-bottom:8px">── Hero ──</div>
+      <div style="color:#f5f5f5;margin-bottom:4px">Big headline + subtext</div>
+      <div style="background:#6366f1;color:#fff;display:inline-block;padding:2px 8px;border-radius:3px;margin-bottom:12px;font-size:10px">Get Started →</div>
+      <div style="color:#6366f1;font-weight:700;font-size:13px;margin-bottom:8px">── Demo ──</div>
+      <div style="border:1px solid #333;padding:6px;border-radius:4px;color:#aaa;margin-bottom:12px">[ mini study guide ]<br>[ clickable sections ]</div>
+      <div style="color:#6366f1;font-weight:700;font-size:13px;margin-bottom:8px">── Features ──</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <div style="border:1px solid #333;padding:4px 6px;border-radius:3px;flex:1;color:#aaa;font-size:10px">Upload PDFs</div>
+        <div style="border:1px solid #333;padding:4px 6px;border-radius:3px;flex:1;color:#aaa;font-size:10px">AI Guides</div>
+        <div style="border:1px solid #333;padding:4px 6px;border-radius:3px;flex:1;color:#aaa;font-size:10px">Chat</div>
+      </div>
+      <div style="color:#6366f1;font-weight:700;font-size:13px;margin-bottom:4px">── CTA Footer ──</div>
+      <div style="color:#aaa;font-size:10px">Sign up free</div>
+    </div>
+    <div class="card-body">
+      <h3>A — Scroll narrative</h3>
+      <p>Hero → Demo → Features → CTA. Classic conversion flow. Demo is in context after hook. <strong>Recommended.</strong></p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#0d0d0d;border-radius:6px;font-family:monospace;font-size:11px;line-height:1.6;color:#888">
+      <div style="color:#6366f1;font-weight:700;font-size:13px;margin-bottom:8px">── Hero (split) ──</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <div style="flex:1">
+          <div style="color:#f5f5f5;margin-bottom:4px">Headline</div>
+          <div style="color:#aaa;font-size:10px;margin-bottom:6px">Subtext goes here describing the product</div>
+          <div style="background:#6366f1;color:#fff;display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px">Get Started →</div>
+        </div>
+        <div style="flex:1;border:1px solid #333;border-radius:4px;padding:6px;color:#aaa;font-size:10px">
+          [ mini guide<br>demo here ]
+        </div>
+      </div>
+      <div style="color:#6366f1;font-weight:700;font-size:13px;margin-bottom:8px">── Features ──</div>
+      <div style="display:flex;gap:8px">
+        <div style="border:1px solid #333;padding:4px 6px;border-radius:3px;flex:1;color:#aaa;font-size:10px">Upload PDFs</div>
+        <div style="border:1px solid #333;padding:4px 6px;border-radius:3px;flex:1;color:#aaa;font-size:10px">AI Guides</div>
+        <div style="border:1px solid #333;padding:4px 6px;border-radius:3px;flex:1;color:#aaa;font-size:10px">Chat</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Split hero</h3>
+      <p>Copy on left, demo on right — product visible immediately above the fold. Bold, product-led. Less room for copy.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#0d0d0d;border-radius:6px;font-family:monospace;font-size:11px;line-height:1.6;color:#888">
+      <div style="color:#6366f1;font-weight:700;font-size:13px;margin-bottom:8px">── Minimal hero ──</div>
+      <div style="color:#f5f5f5;margin-bottom:4px;font-size:12px">tldr.</div>
+      <div style="color:#aaa;font-size:10px;margin-bottom:4px">One sharp tagline</div>
+      <div style="background:#6366f1;color:#fff;display:inline-block;padding:2px 8px;border-radius:3px;margin-bottom:12px;font-size:10px">Try it →</div>
+      <div style="color:#6366f1;font-weight:700;font-size:13px;margin-bottom:8px">── Full-width demo ──</div>
+      <div style="border:1px solid #333;padding:10px;border-radius:4px;color:#aaa;margin-bottom:12px;min-height:50px">
+        [ large interactive mini guide<br>takes center stage ]
+      </div>
+      <div style="color:#aaa;font-size:10px;text-align:center">Sign up to save your guides</div>
+    </div>
+    <div class="card-body">
+      <h3>C — Demo-first</h3>
+      <p>Minimal copy, big demo. Let the product do the talking. Highest risk if demo isn't immediately clear, but most distinctive.</p>
+    </div>
+  </div>
+
+</div>
