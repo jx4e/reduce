@@ -41,6 +41,11 @@ describe('POST /api/auth/register', () => {
     expect(res.status).toBe(400)
   })
 
+  it('returns 400 when password is shorter than 8 characters', async () => {
+    const res = await POST(makeRequest({ email: 'a@b.com', password: 'short' }))
+    expect(res.status).toBe(400)
+  })
+
   it('returns 409 when email already taken', async () => {
     ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'existing' })
     const res = await POST(makeRequest({ email: 'a@b.com', password: 'secret123' }))

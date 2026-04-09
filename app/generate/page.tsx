@@ -65,11 +65,12 @@ export default function GeneratePage() {
               setCurrentStage(STAGE_INDEX[event.stage] ?? 0)
             } else if (event.type === 'done') {
               setCurrentStage(STAGES.length - 1)
-              await fetch('/api/guides', {
+              const saveRes = await fetch('/api/guides', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(event.guide),
               })
+              if (!saveRes.ok) throw new Error('Failed to save guide')
               router.push(`/guide/${event.guide.id}`)
               return
             } else if (event.type === 'error') {
