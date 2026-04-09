@@ -328,7 +328,22 @@ function ElementContent({ element }: { element: ContentElement }) {
         ? <h3 className="text-base font-semibold mt-4 mb-1">{element.content}</h3>
         : <h2 className="text-lg font-semibold mt-6 mb-2">{element.content}</h2>
     case 'paragraph':
-      return <p className="text-sm leading-7" style={{ color: 'var(--foreground)' }}>{element.content}</p>
+      return (
+        <ReactMarkdown
+          remarkPlugins={[remarkMath]}
+          rehypePlugins={[rehypeKatex]}
+          components={{
+            p: ({ children }) => <p className="text-sm leading-7" style={{ color: 'var(--foreground)' }}>{children}</p>,
+            strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+            em: ({ children }) => <em className="italic">{children}</em>,
+            code: ({ children }) => (
+              <code className="rounded px-1 py-0.5 text-xs font-mono" style={{ background: 'var(--border)' }}>{children}</code>
+            ),
+          }}
+        >
+          {element.content}
+        </ReactMarkdown>
+      )
     case 'formula':
       return <FormulaBlock content={element.content} />
     case 'code':
