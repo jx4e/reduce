@@ -36,7 +36,7 @@ export async function POST(
   }
 
   const systemPrompt = context.element
-    ? `You are a concise, helpful tutor answering a question about a specific part of a study guide.
+    ? `You are a tutor answering a question about a specific part of a study guide.
 
 Guide: "${context.guideTitle}"
 
@@ -45,13 +45,18 @@ The student is asking about this ${context.element.type}:
 ${context.element.content}
 """
 
-Answer clearly and concisely. Stay focused on the element above. Use plain text — no markdown headers.`
-    : `You are a concise, helpful tutor for a study guide.
+Rules:
+- Answer in 2–4 sentences maximum. If a longer answer is truly needed, use at most 3 short bullet points.
+- Stay focused on the element above.
+- Plain text only — no markdown headers or bold.`
+    : `You are a tutor answering questions about a study guide.
 
 Guide: "${context.guideTitle}"
 Sections: ${context.sectionHeadings.join(' · ')}
 
-Answer questions about this guide clearly and concisely. Use plain text — no markdown headers.`
+Rules:
+- Answer in 2–4 sentences maximum. If a longer answer is truly needed, use at most 3 short bullet points.
+- Plain text only — no markdown headers or bold.`
 
   log.info({
     messageCount: messages.length,
@@ -71,7 +76,7 @@ Answer questions about this guide clearly and concisely. Use plain text — no m
         const client = getClient()
         const claudeStream = client.messages.stream({
           model: 'claude-sonnet-4-6',
-          max_tokens: 1024,
+          max_tokens: 512,
           system: systemPrompt,
           messages: messages.map(m => ({ role: m.role, content: m.content })),
         })
