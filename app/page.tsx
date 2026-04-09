@@ -1,22 +1,22 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import UploadZone from '@/components/UploadZone'
 import GuideCard from '@/components/GuideCard'
 import type { GuideCardData, GuideMode } from '@/types/guide'
 import { setPending } from '@/lib/pendingGeneration'
-
-const MOCK_GUIDES: GuideCardData[] = [
-  { id: '1', title: 'Electromagnetism — Maxwell\'s Equations', createdAt: 'Apr 5, 2026', mode: 'math-cs' },
-  { id: '2', title: 'The French Revolution: Causes and Consequences', createdAt: 'Apr 3, 2026', mode: 'humanities' },
-  { id: '3', title: 'Data Structures: Trees and Graphs', createdAt: 'Apr 1, 2026', mode: 'math-cs' },
-]
+import { listGuides } from '@/lib/guideStorage'
 
 export default function HomePage() {
   const router = useRouter()
   const [files, setFiles] = useState<File[]>([])
   const [mode, setMode] = useState<GuideMode>('math-cs')
+  const [guides, setGuides] = useState<GuideCardData[]>([])
+
+  useEffect(() => {
+    setGuides(listGuides())
+  }, [])
 
   function handleGenerate() {
     if (files.length === 0) return
@@ -68,16 +68,18 @@ export default function HomePage() {
         </section>
 
         {/* Recent guides */}
-        <section className="flex flex-col gap-4">
-          <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>
-            Recent Guides
-          </h2>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {MOCK_GUIDES.map(guide => (
-              <GuideCard key={guide.id} guide={guide} />
-            ))}
-          </div>
-        </section>
+        {guides.length > 0 && (
+          <section className="flex flex-col gap-4">
+            <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>
+              Recent Guides
+            </h2>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {guides.map(guide => (
+                <GuideCard key={guide.id} guide={guide} />
+              ))}
+            </div>
+          </section>
+        )}
 
       </div>
     </div>

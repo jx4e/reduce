@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Stepper from '@/components/Stepper'
 import { consumePending } from '@/lib/pendingGeneration'
+import { saveGuide } from '@/lib/guideStorage'
 import type { Guide } from '@/types/guide'
 
 const STAGES = ['Parsing', 'Analyzing', 'Writing', 'Rendering']
@@ -45,7 +46,7 @@ export default function GeneratePage() {
         }
 
         const guide: Guide = await res.json()
-        localStorage.setItem(guide.id, JSON.stringify(guide))
+        saveGuide(guide)
         clearInterval(interval)
         router.push(`/guide/${guide.id}`)
       } catch (err) {
