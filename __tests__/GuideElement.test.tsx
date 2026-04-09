@@ -3,10 +3,16 @@ import userEvent from '@testing-library/user-event'
 import GuideElement from '@/components/GuideElement'
 import type { ContentElement } from '@/types/guide'
 
+// GuideElement uses createPortal — stub it for jsdom
+jest.mock('react-dom', () => ({
+  ...jest.requireActual('react-dom'),
+  createPortal: (node: React.ReactNode) => node,
+}))
+
 const paragraphElement: ContentElement = {
   id: 'el-1',
   type: 'paragraph',
-  content: 'Maxwell\'s equations describe electromagnetism.',
+  content: "Maxwell's equations describe electromagnetism.",
 }
 
 const formulaElement: ContentElement = {
@@ -21,32 +27,32 @@ describe('GuideElement', () => {
     expect(screen.getByText(/Maxwell's equations/)).toBeInTheDocument()
   })
 
-  it('shows ask button on hover', async () => {
+  it('shows context menu on right-click', async () => {
     const user = userEvent.setup()
     render(<GuideElement element={paragraphElement} messages={[]} note="" onAsk={() => {}} onNoteChange={() => {}} />)
-    const container = screen.getByTestId('guide-element-el-1')
-    await user.hover(container)
-    expect(screen.getByRole('button', { name: /ask/i })).toBeVisible()
+    const content = screen.getByText(/Maxwell's equations/)
+    await user.pointer({ keys: '[MouseRight]', target: content })
+    expect(screen.getByText('Ask about this')).toBeInTheDocument()
   })
 
-  it('shows popover when ask button is clicked', async () => {
+  it('opens chat modal when Ask about this is clicked', async () => {
     const user = userEvent.setup()
     render(<GuideElement element={paragraphElement} messages={[]} note="" onAsk={() => {}} onNoteChange={() => {}} />)
-    const container = screen.getByTestId('guide-element-el-1')
-    await user.hover(container)
-    await user.click(screen.getByRole('button', { name: /ask/i }))
-    expect(screen.getByRole('textbox')).toBeInTheDocument()
+    const content = screen.getByText(/Maxwell's equations/)
+    await user.pointer({ keys: '[MouseRight]', target: content })
+    await user.click(screen.getByText('Ask about this'))
+    expect(screen.getByPlaceholderText(/what does this mean/i)).toBeInTheDocument()
   })
 
   it('calls onAsk with element and question when form submitted', async () => {
     const user = userEvent.setup()
     const onAsk = jest.fn()
     render(<GuideElement element={paragraphElement} messages={[]} note="" onAsk={onAsk} onNoteChange={() => {}} />)
-    const container = screen.getByTestId('guide-element-el-1')
-    await user.hover(container)
-    await user.click(screen.getByRole('button', { name: /ask/i }))
-    await user.type(screen.getByRole('textbox'), 'What does this mean?')
-    await user.click(screen.getByRole('button', { name: /submit/i }))
+    const content = screen.getByText(/Maxwell's equations/)
+    await user.pointer({ keys: '[MouseRight]', target: content })
+    await user.click(screen.getByText('Ask about this'))
+    await user.type(screen.getByPlaceholderText(/what does this mean/i), 'What does this mean?')
+    await user.click(screen.getByRole('button', { name: /submit question/i }))
     expect(onAsk).toHaveBeenCalledWith(paragraphElement, 'What does this mean?')
   })
 })

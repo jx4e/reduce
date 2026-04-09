@@ -1,0 +1,7 @@
+{"type":"server-started","port":51193,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:51193","screen_dir":"/Users/jake/Projects/reduce/.superpowers/brainstorm/15649-1775708507/content","state_dir":"/Users/jake/Projects/reduce/.superpowers/brainstorm/15649-1775708507/state"}
+{"type":"screen-added","file":"/Users/jake/Projects/reduce/.superpowers/brainstorm/15649-1775708507/content/layouts.html"}
+{"source":"user-event","type":"click","text":"── Hero ──\n      Big headline + subtext\n      Get Started →\n      ── Demo ──\n      [ mini study guide ][ clickable sections ]\n      ── Features ──\n      \n        Upload PDFs\n        AI Guides\n        Chat\n      \n      ── CTA Footer ──\n      Sign up free\n    \n    \n      A — Scroll narrative\n      Hero → Demo → Features → CTA. Classic conversion flow. Demo is in context after hook. Recommended.","choice":"a","id":null,"timestamp":1775708631488}
+{"type":"screen-added","file":"/Users/jake/Projects/reduce/.superpowers/brainstorm/15649-1775708507/content/hero.html"}
+{"type":"screen-added","file":"/Users/jake/Projects/reduce/.superpowers/brainstorm/15649-1775708507/content/demo.html"}
+{"type":"screen-added","file":"/Users/jake/Projects/reduce/.superpowers/brainstorm/15649-1775708507/content/features-cta.html"}
+{"type":"server-stopped","reason":"idle timeout"}

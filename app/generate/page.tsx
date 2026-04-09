@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Stepper from '@/components/Stepper'
 import { consumePending } from '@/lib/pendingGeneration'
-import { saveGuide } from '@/lib/guideStorage'
 import type { GenerateEvent } from '@/app/api/guides/generate/route'
 
 const STAGES = ['Parsing', 'Analyzing', 'Writing', 'Rendering']
@@ -66,7 +65,12 @@ export default function GeneratePage() {
               setCurrentStage(STAGE_INDEX[event.stage] ?? 0)
             } else if (event.type === 'done') {
               setCurrentStage(STAGES.length - 1)
-              saveGuide(event.guide)
+              const saveRes = await fetch('/api/guides', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(event.guide),
+              })
+              if (!saveRes.ok) throw new Error('Failed to save guide')
               router.push(`/guide/${event.guide.id}`)
               return
             } else if (event.type === 'error') {

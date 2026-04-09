@@ -1,0 +1,4 @@
+{"type":"server-started","port":65534,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:65534","screen_dir":"/Users/jake/Projects/reduce/.superpowers/brainstorm/82181-1775701942/content","state_dir":"/Users/jake/Projects/reduce/.superpowers/brainstorm/82181-1775701942/state"}
+{"type":"screen-added","file":"/Users/jake/Projects/reduce/.superpowers/brainstorm/82181-1775701942/content/burger-position.html"}
+{"type":"screen-added","file":"/Users/jake/Projects/reduce/.superpowers/brainstorm/82181-1775701942/content/waiting.html"}
+{"type":"server-stopped","reason":"idle timeout"}

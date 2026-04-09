@@ -9,20 +9,19 @@ export default function GuideClientLoader({ id }: { id: string }) {
   const [guide, setGuide] = useState<Guide | null | 'not-found'>(null)
 
   useEffect(() => {
-    const stored = localStorage.getItem(id)
-    if (stored) {
-      try {
-        setGuide(JSON.parse(stored) as Guide)
-      } catch {
-        setGuide('not-found')
-      }
-    } else {
-      setGuide('not-found')
-    }
+    fetch(`/api/guides/${id}`)
+      .then(res => {
+        if (!res.ok) { setGuide('not-found'); return }
+        return res.json()
+      })
+      .then(data => {
+        if (data) setGuide(data as Guide)
+      })
+      .catch(() => setGuide('not-found'))
   }, [id])
 
   if (guide === null) {
-    // Still loading from localStorage (first render)
+    // Still loading
     return null
   }
 

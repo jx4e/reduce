@@ -1,0 +1,196 @@
+# Auth & Accounts — Design Spec
+
+**Date:** 2026-04-08  
+**Stack:** Auth.js v5 + Prisma + Postgres on Railway  
+**Scope:** Full auth wall (login required for everything), email/password + Google OAuth, guide storage migrated from localStorage to Postgres.
+
+---
+
+## 1. Data Model
+
+Managed by Prisma. Auth.js requires four tables; we add one app table.
+
+```prisma
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?   // nullable — OAuth users have no password; bcryptjs hash for credentials users
+  accounts      Account[]
+  sessions      Session[]
+  guides        Guide[]
+  createdAt     DateTime  @default(now())
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+  @@id([identifier, token])
+}
+
+model Guide {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  mode      String
+  content   Json
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+```
+
+**Session strategy:** database sessions (not JWT). Sessions are validated against the `Session` table on each request, allowing instant invalidation. Worth the extra DB round-trip since we're hitting Postgres for guides anyway.
+
+---
+
+## 2. Auth Configuration
+
+**File:** `auth.ts` (project root)
+
+Providers:
+- `Credentials` — validates email + bcryptjs-hashed password from `User.password`
+- `Google` — OAuth via `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` env vars
+
+Adapter: `@auth/prisma-adapter` wired to the shared Prisma client.
+
+**File:** `middleware.ts` (project root)
+
+Protects all routes. Public paths (no redirect):
+- `/login`
+- `/register`
+- `/api/auth/*`
+
+All other paths redirect unauthenticated users to `/login`.
+
+---
+
+## 3. Auth Flow
+
+### Registration (`/register`)
+1. User submits name, email, password
+2. Server action checks email not already taken
+3. Password hashed with `bcryptjs` (cost factor 12)
+4. `User` row created in Postgres
+5. User is automatically signed in and redirected to `/`
+
+### Login (`/login`)
+Two options on the same page:
+- **Email/password form** → Auth.js `Credentials` provider: looks up user by email, compares bcryptjs hash, creates session
+- **"Continue with Google" button** → Auth.js Google OAuth flow → session created on callback
+
+### Sign Out
+Navbar sign-out button calls Auth.js `signOut()`, clears session cookie, redirects to `/login`.
+
+---
+
+## 4. Guide Storage Migration
+
+`lib/guideStorage.ts` (localStorage) is deleted entirely. No migration of existing data — app is pre-launch.
+
+### New API Routes
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/guides` | List current user's guides (scoped by `userId`) |
+| POST | `/api/guides` | Save a new guide |
+| GET | `/api/guides/[id]` | Fetch a single guide (verified to belong to current user) |
+
+Every route calls `auth()` to get the session. All Prisma queries are scoped to `session.user.id` — users cannot access other users' guides.
+
+### Client-Side Changes
+- `app/page.tsx` — fetches from `GET /api/guides` instead of `listGuides()`
+- Generate flow — posts to `POST /api/guides` instead of `saveGuide()`
+- Guide view (`app/guide/[id]`) — fetches from `GET /api/guides/[id]` instead of localStorage
+
+---
+
+## 5. New Pages & Components
+
+### New Pages
+- **`app/login/page.tsx`** — email/password form + "Continue with Google" button. Redirects to `/` on success.
+- **`app/register/page.tsx`** — name, email, password form. Auto-signs in on success, redirects to `/`.
+
+### Modified Components
+- **`components/Navbar.tsx`** — add user avatar (DiceBear, top-right) with a sign-out button/dropdown.
+
+### User Avatar
+DiceBear via CDN — no package required:
+```
+https://api.dicebear.com/9.x/shapes/svg?seed=<userId>
+```
+Deterministic: same user ID always produces the same avatar. Style: `shapes` (can be swapped for `identicon`, `pixel-art`, `rings`, `bottts`).
+
+---
+
+## 6. New Files
+
+```
+auth.ts                          Auth.js config (providers, adapter, session strategy)
+middleware.ts                    Route protection
+prisma/schema.prisma             Full Prisma schema
+prisma/migrations/               Generated by prisma migrate dev
+lib/db.ts                        Shared PrismaClient singleton
+```
+
+---
+
+## 7. New Dependencies
+
+```
+next-auth@beta
+@auth/prisma-adapter
+@prisma/client
+prisma                           (devDependency)
+bcryptjs
+@types/bcryptjs                  (devDependency)
+```
+
+---
+
+## 8. Environment Variables
+
+```
+DATABASE_URL          postgresql://... (Railway Postgres connection string)
+AUTH_SECRET           random 32-byte secret (generate with: openssl rand -base64 32)
+AUTH_GOOGLE_ID        from Google Cloud Console
+AUTH_GOOGLE_SECRET    from Google Cloud Console
+```
+
+---
+
+## 9. Railway Deployment
+
+- Add a **Postgres** service in Railway, link it to the app service
+- Set the four env vars above in Railway's environment settings
+- Add `prisma migrate deploy` to the Railway build command (before `next build`)
+
+Build command:
+```
+npx prisma migrate deploy && next build
+```
