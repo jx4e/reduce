@@ -21,7 +21,14 @@ export default async function Navbar() {
       <div className="flex items-center gap-3">
         <ThemeToggle />
         {session?.user ? (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
+            <Link
+              href="/groups"
+              className="text-sm transition-colors hover:opacity-80"
+              style={{ color: 'var(--muted)' }}
+            >
+              Groups
+            </Link>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={`https://api.dicebear.com/9.x/shapes/svg?seed=${session.user.id}`}
