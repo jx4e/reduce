@@ -22,7 +22,7 @@ export function useGuideScroll(sections: GuideSection[]): UseGuideScrollReturn {
         document.getElementById(`section-${sectionId}`)?.scrollIntoView()
       }
     }
-  }, [])
+  }, [sections])
 
   useEffect(() => {
     const scrollEl = contentRef.current

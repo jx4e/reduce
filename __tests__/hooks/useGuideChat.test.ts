@@ -27,4 +27,25 @@ describe('useGuideChat', () => {
     act(() => { result.current.setInput('Hello') })
     expect(result.current.input).toBe('Hello')
   })
+
+  it('sends a message and appends user + assistant entries', async () => {
+    const encoder = new TextEncoder()
+    ;(global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      body: new ReadableStream({
+        start(controller) {
+          controller.enqueue(encoder.encode('data: {"type":"delta","text":"Answer"}\n\n'))
+          controller.close()
+        },
+      }),
+    })
+
+    const { result } = renderHook(() => useGuideChat(guide))
+    act(() => { result.current.setInput('What is inertia?') })
+    await act(async () => { await result.current.send() })
+
+    expect(result.current.input).toBe('')
+    expect(result.current.messages[0]).toMatchObject({ role: 'user', content: 'What is inertia?' })
+    expect(result.current.messages[1]).toMatchObject({ role: 'assistant' })
+  })
 })

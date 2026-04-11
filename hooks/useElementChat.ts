@@ -1,6 +1,7 @@
+// hooks/useElementChat.ts
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { streamChat, nextId } from '@/lib/chat'
 import type { ChatMessage, ContentElement } from '@/types/guide'
 
@@ -12,7 +13,16 @@ export interface UseElementChatReturn {
 
 export function useElementChat(guideId: string, element: ContentElement): UseElementChatReturn {
   const [messages, setMessages] = useState<ChatMessage[]>([])
+  const messagesRef = useRef<ChatMessage[]>([])
   const [loading, setLoading] = useState(false)
+
+  function updateMessages(updater: (prev: ChatMessage[]) => ChatMessage[]) {
+    setMessages(prev => {
+      const next = updater(prev)
+      messagesRef.current = next
+      return next
+    })
+  }
 
   async function send(question: string) {
     if (loading) return
@@ -22,9 +32,9 @@ export function useElementChat(guideId: string, element: ContentElement): UseEle
     const assistantId = nextId()
     const assistantMsg: ChatMessage = { id: assistantId, role: 'assistant', content: '' }
 
-    setMessages(prev => [...prev, userMsg, assistantMsg])
+    updateMessages(prev => [...prev, userMsg, assistantMsg])
 
-    const history = [...messages, userMsg]
+    const history = [...messagesRef.current.slice(0, -2), userMsg]
 
     try {
       await streamChat(
@@ -34,14 +44,14 @@ export function useElementChat(guideId: string, element: ContentElement): UseEle
           context: { element: { type: element.type, content: element.content } },
         },
         (chunk) => {
-          setMessages(prev =>
+          updateMessages(prev =>
             prev.map(m => m.id === assistantId ? { ...m, content: m.content + chunk } : m)
           )
         },
       )
     } catch (err) {
       const errorText = err instanceof Error ? err.message : 'Something went wrong'
-      setMessages(prev =>
+      updateMessages(prev =>
         prev.map(m => m.id === assistantId ? { ...m, content: `Error: ${errorText}` } : m)
       )
     } finally {
