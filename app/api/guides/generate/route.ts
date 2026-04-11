@@ -63,7 +63,7 @@ function assignIds(raw: ClaudeGuide, mode: GuideMode): Guide {
 // SSE event types the client receives
 export type GenerateEvent =
   | { type: 'stage'; stage: 'parsing' | 'analyzing' | 'writing' | 'rendering' }
-  | { type: 'done'; guide: Guide }
+  | { type: 'done'; guideId: string }
   | { type: 'error'; message: string }
 
 export async function POST(request: NextRequest): Promise<Response> {
@@ -85,6 +85,8 @@ export async function POST(request: NextRequest): Promise<Response> {
   const projectId = formData.get('projectId') as string | null
   const storedFileIdsRaw = formData.get('storedFileIds') as string | null
   const storedFileIds = storedFileIdsRaw ? storedFileIdsRaw.split(',').filter(Boolean) : []
+  const description = (formData.get('description') as string | null)?.trim() || null
+  const customTitle = (formData.get('customTitle') as string | null)?.trim() || null
 
   if (rawMode !== 'math-cs' && rawMode !== 'humanities') {
     log.warn({ rawMode }, 'invalid mode')
@@ -195,7 +197,12 @@ export async function POST(request: NextRequest): Promise<Response> {
                 role: 'user',
                 content: [
                   ...contentBlocks,
-                  { type: 'text', text: 'Generate a study guide from the material above.' },
+                  {
+                    type: 'text',
+                    text: description
+                      ? `Generate a study guide from the material above.\n\nAdditional context from the user: ${description}`
+                      : 'Generate a study guide from the material above.',
+                  },
                 ],
               },
             ],
@@ -257,14 +264,34 @@ export async function POST(request: NextRequest): Promise<Response> {
         let guide: Guide
         try {
           guide = assignIds(parsed, mode)
+          if (customTitle) guide = { ...guide, title: customTitle }
         } catch {
           send(controller, { type: 'error', message: 'Failed to process Claude response' })
           controller.close()
           return
         }
 
-        log.info({ id: guide.id, title: guide.title, sections: guide.sections.length }, 'guide generated')
-        send(controller, { type: 'done', guide })
+        try {
+          await prisma.guide.create({
+            data: {
+              id: guide.id,
+              userId: session.user!.id,
+              title: guide.title,
+              mode: guide.mode,
+              content: guide.sections,
+              ...(projectId ? { projectId } : {}),
+            },
+          })
+        } catch (err) {
+          const message = err instanceof Error ? err.message : 'Failed to save guide'
+          log.error({ err }, 'failed to save guide to database')
+          send(controller, { type: 'error', message })
+          controller.close()
+          return
+        }
+
+        log.info({ id: guide.id, title: guide.title, sections: guide.sections.length }, 'guide saved')
+        send(controller, { type: 'done', guideId: guide.id })
         controller.close()
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unexpected error'
