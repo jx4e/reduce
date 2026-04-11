@@ -52,7 +52,7 @@ export default function GeneratePage() {
 
     const pending = peekPending()
     if (!pending) {
-      router.replace('/')
+      router.replace('/app')
       return
     }
 

@@ -75,7 +75,7 @@ describe('GeneratePage', () => {
     mockPeekPending.mockReturnValue(null)
     global.fetch = jest.fn()
     render(<GeneratePage />)
-    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/'))
+    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/app'))
   })
 
   it('advances stage title when a stage event arrives', async () => {
