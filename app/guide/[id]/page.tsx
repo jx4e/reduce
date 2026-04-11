@@ -1,6 +1,6 @@
 import GuideClientLoader from './GuideClientLoader'
 
-export default async function GuidePage(props: PageProps<'/guide/[id]'>) {
-  const { id } = await props.params
+export default async function GuidePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   return <GuideClientLoader id={id} />
 }
