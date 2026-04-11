@@ -7,6 +7,12 @@ if (typeof global.TextEncoder === 'undefined') {
   global.TextDecoder = TextDecoder
 }
 
+// Polyfill ReadableStream for jsdom (not available in Node's jsdom environment).
+if (typeof global.ReadableStream === 'undefined') {
+  const { ReadableStream } = require('stream/web')
+  global.ReadableStream = ReadableStream
+}
+
 // Guard: window/HTMLElement are only available in jsdom environment.
 if (typeof window !== 'undefined') {
   window.HTMLElement.prototype.scrollIntoView = jest.fn()
