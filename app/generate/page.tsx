@@ -60,6 +60,8 @@ export default function GeneratePage() {
       const formData = new FormData()
       pending.files.forEach(f => formData.append('files', f))
       formData.append('mode', pending.mode)
+      if (pending.projectId) formData.append('projectId', pending.projectId)
+      if (pending.storedFileIds?.length) formData.append('storedFileIds', pending.storedFileIds.join(','))
 
       const res = await fetch('/api/guides/generate', { method: 'POST', body: formData })
 
@@ -95,7 +97,10 @@ export default function GeneratePage() {
             const saveRes = await fetch('/api/guides', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(event.guide),
+              body: JSON.stringify({
+                ...event.guide,
+                projectId: peekPending()?.projectId,
+              }),
             })
             if (!saveRes.ok) throw new Error('Failed to save guide')
 
