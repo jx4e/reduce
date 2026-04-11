@@ -47,6 +47,7 @@ export async function POST(request: NextRequest) {
       title: body.title,
       mode: body.mode,
       content: body.sections ?? [],
+      ...(body.projectId ? { projectId: body.projectId } : {}),
     },
   })
 
