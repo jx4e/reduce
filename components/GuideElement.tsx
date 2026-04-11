@@ -92,6 +92,14 @@ export default function GuideElement({ element, guideId }: GuideElementProps) {
     setQuestion('')
   }
 
+  const menuItems = [
+    { label: 'Ask about this', icon: 'M14 1H2C1.45 1 1 1.45 1 2v9c0 .55.45 1 1 1h2v3l3.5-3H14c.55 0 1-.45 1-1V2c0-.55-.45-1-1-1z', action: () => { setCtxMenu(null); openModal('chat') } },
+    { label: 'Add note', icon: 'M13 1H3a2 2 0 0 0-2 2v12l3-3h9a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm-1 9H4V9h8v1zm0-3H4V6h8v1zm0-3H4V3h8v1z', action: () => { setCtxMenu(null); openModal('notes') } },
+    ...(['paragraph', 'heading', 'formula', 'code'] as const).includes(element.type as 'paragraph' | 'heading' | 'formula' | 'code')
+      ? [{ label: 'Copy text', icon: 'M10 1H4a1 1 0 0 0-1 1v1H2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-1h1a1 1 0 0 0 1-1V5l-4-4zm0 1.5L12.5 5H10V2.5zM10 13H2V4h1v8a1 1 0 0 0 1 1h6v1zm3-3H4V2h5v4h4v7z', action: () => { setCtxMenu(null); navigator.clipboard.writeText(element.content) } }]
+      : [],
+  ]
+
   return (
     <div
       data-testid={`guide-element-${element.id}`}
@@ -114,11 +122,7 @@ export default function GuideElement({ element, guideId }: GuideElementProps) {
           style={{ top: ctxMenu.y, left: ctxMenu.x, background: 'var(--surface)', borderColor: 'var(--border)', minWidth: '11rem', animation: 'fade-in 0.1s ease-out' }}
           onClick={e => e.stopPropagation()}
         >
-          {[
-            { label: 'Ask about this', icon: 'M14 1H2C1.45 1 1 1.45 1 2v9c0 .55.45 1 1 1h2v3l3.5-3H14c.55 0 1-.45 1-1V2c0-.55-.45-1-1-1z', action: () => { setCtxMenu(null); openModal('chat') } },
-            { label: 'Add note', icon: 'M13 1H3a2 2 0 0 0-2 2v12l3-3h9a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm-1 9H4V9h8v1zm0-3H4V6h8v1zm0-3H4V3h8v1z', action: () => { setCtxMenu(null); openModal('notes') } },
-            { label: 'Copy text', icon: 'M10 1H4a1 1 0 0 0-1 1v1H2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-1h1a1 1 0 0 0 1-1V5l-4-4zm0 1.5L12.5 5H10V2.5zM10 13H2V4h1v8a1 1 0 0 0 1 1h6v1zm3-3H4V2h5v4h4v7z', action: () => { setCtxMenu(null); navigator.clipboard.writeText(element.content) } },
-          ].map(item => (
+          {menuItems.map(item => (
             <button
               key={item.label}
               onClick={item.action}
