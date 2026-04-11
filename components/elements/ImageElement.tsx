@@ -4,6 +4,7 @@
 import type { ContentElement } from '@/types/guide'
 
 export function ImageElement({ element }: { element: ContentElement }) {
+  if (!element.src) return null
   return (
     <figure className="my-3">
       {/* eslint-disable-next-line @next/next/no-img-element */}

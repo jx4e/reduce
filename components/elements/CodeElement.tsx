@@ -1,7 +1,7 @@
 // components/elements/CodeElement.tsx
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import hljs from 'highlight.js'
 import type { ContentElement } from '@/types/guide'
 
@@ -9,14 +9,15 @@ export function CodeElement({ element }: { element: ContentElement }) {
   const [copied, setCopied] = useState(false)
   const { content, language } = element
 
-  let html: string
-  try {
-    html = language && hljs.getLanguage(language)
-      ? hljs.highlight(content, { language }).value
-      : hljs.highlightAuto(content).value
-  } catch {
-    html = content
-  }
+  const html = useMemo(() => {
+    try {
+      return language && hljs.getLanguage(language)
+        ? hljs.highlight(content, { language }).value
+        : hljs.highlightAuto(content).value
+    } catch {
+      return content
+    }
+  }, [content, language])
 
   function handleCopy() {
     navigator.clipboard.writeText(content)

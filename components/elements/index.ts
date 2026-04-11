@@ -1,4 +1,6 @@
 // components/elements/index.ts
+'use client'
+
 import React from 'react'
 import type { ContentElementType, ContentElement } from '@/types/guide'
 import { HeadingElement } from './HeadingElement'
