@@ -14,7 +14,9 @@ export interface UseResizableReturn {
 }
 
 export function useResizable(initialWidth = 300): UseResizableReturn {
-  const [width, setWidth] = useState(initialWidth)
+  const [width, setWidth] = useState(
+    Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, initialWidth))
+  )
   const [isDragging, setIsDragging] = useState(false)
   const dragRef = useRef<{ startX: number; startW: number } | null>(null)
 
