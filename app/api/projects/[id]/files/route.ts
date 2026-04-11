@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/db'
-import { uploadFile } from '@/lib/storage'
+import { uploadFile, deleteFile } from '@/lib/storage'
 import type { ProjectFile } from '@/types/project'
 
 type Context = { params: Promise<{ id: string }> }
@@ -43,23 +43,30 @@ export async function POST(request: NextRequest, context: Context) {
   }
 
   const saved: ProjectFile[] = []
+  const uploadedKeys: string[] = []
 
   for (const file of files) {
     const key = `projects/${projectId}/${randomUUID()}-${file.name}`
-    const buffer = Buffer.from(await file.arrayBuffer())
-    await uploadFile(key, buffer, file.type)
-    const record = await prisma.projectFile.create({
-      data: { projectId, name: file.name, size: file.size, mimeType: file.type, storageKey: key },
-    })
-    saved.push({
-      id: record.id,
-      projectId: record.projectId,
-      name: record.name,
-      size: record.size,
-      mimeType: record.mimeType,
-      storageKey: record.storageKey,
-      uploadedAt: record.uploadedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-    })
+    try {
+      const buffer = Buffer.from(await file.arrayBuffer())
+      await uploadFile(key, buffer, file.type)
+      uploadedKeys.push(key)
+      const record = await prisma.projectFile.create({
+        data: { projectId, name: file.name, size: file.size, mimeType: file.type, storageKey: key },
+      })
+      saved.push({
+        id: record.id,
+        projectId: record.projectId,
+        name: record.name,
+        size: record.size,
+        mimeType: record.mimeType,
+        uploadedAt: record.uploadedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      })
+    } catch (err) {
+      // Clean up any storage objects uploaded before the failure
+      await Promise.allSettled(uploadedKeys.map(k => deleteFile(k)))
+      return NextResponse.json({ error: 'Failed to save file' }, { status: 502 })
+    }
   }
 
   return NextResponse.json(saved, { status: 201 })

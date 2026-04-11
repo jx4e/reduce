@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/db'
 import { deleteFile } from '@/lib/storage'
-import type { ProjectDetail, ProjectFile } from '@/types/project'
+import type { ProjectDetail } from '@/types/project'
 import type { GuideCardData } from '@/types/guide'
 
 type Context = { params: Promise<{ id: string }> }
@@ -39,9 +39,8 @@ export async function GET(_request: NextRequest, context: Context) {
       name: f.name,
       size: f.size,
       mimeType: f.mimeType,
-      storageKey: f.storageKey,
       uploadedAt: f.uploadedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-    } satisfies ProjectFile)),
+    })),
     guides: row.guides.map(g => ({
       id: g.id,
       title: g.title,

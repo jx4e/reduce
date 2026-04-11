@@ -6,7 +6,6 @@ export interface ProjectFile {
   name: string
   size: number
   mimeType: string
-  storageKey: string
   uploadedAt: string
 }
 
