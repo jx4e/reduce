@@ -1,0 +1,141 @@
+<style>
+  /* Option card overrides for mockup previews */
+  .preview-box {
+    background: #0f0f0f;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 20px;
+    gap: 20px;
+    min-height: 160px;
+    margin-bottom: 10px;
+  }
+
+  /* A: Pulsing orb */
+  @keyframes pulse-orb {
+    0%, 100% { transform: scale(1); opacity: 0.8; box-shadow: 0 0 0 0 rgba(99,102,241,0.4); }
+    50% { transform: scale(1.15); opacity: 1; box-shadow: 0 0 0 14px rgba(99,102,241,0); }
+  }
+  .orb {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #818cf8, #6366f1);
+    animation: pulse-orb 1.8s ease-in-out infinite;
+  }
+  .orb-label { font-size: 12px; color: #a5b4fc; letter-spacing: 0.05em; }
+
+  /* B: Animated progress bar + stage label */
+  @keyframes progress-sweep {
+    0% { width: 15%; }
+    40% { width: 60%; }
+    70% { width: 78%; }
+    100% { width: 78%; }
+  }
+  .progress-track {
+    width: 220px; height: 3px;
+    background: #222;
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #6366f1, #a78bfa);
+    animation: progress-sweep 2.5s ease-out forwards;
+  }
+  .stage-label-b {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e2e8f0;
+  }
+  .stage-sublabel {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: -12px;
+  }
+
+  /* C: Dotted step trail */
+  @keyframes dot-bounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+  .dots { display: flex; gap: 8px; align-items: center; }
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #6366f1;
+    animation: dot-bounce 1.2s ease-in-out infinite;
+  }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  .step-names {
+    display: flex;
+    gap: 32px;
+    font-size: 11px;
+    color: #64748b;
+  }
+  .step-names span.active-step { color: #a5b4fc; font-weight: 600; }
+</style>
+
+<h2>Animation direction</h2>
+<p class="subtitle">Pick the feel that's right — all can be combined with better messaging and a proper Rendering transition</p>
+
+<div class="cards" style="margin-top: 24px;">
+
+  <!-- A: Pulsing orb -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;">
+      <div class="preview-box">
+        <div class="orb"></div>
+        <span class="orb-label">Analyzing your material…</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Pulsing orb</h3>
+      <p>Central animated focal point; clean, meditative. Stage text updates below.</p>
+    </div>
+  </div>
+
+  <!-- B: Progress bar -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;">
+      <div class="preview-box" style="gap:14px;">
+        <span class="stage-label-b">Writing sections…</span>
+        <div class="progress-track"><div class="progress-fill"></div></div>
+        <span class="stage-sublabel">Stage 3 of 4</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Progress bar + stage copy</h3>
+      <p>Familiar loading pattern; shows forward motion. Bar advances as stages complete.</p>
+    </div>
+  </div>
+
+  <!-- C: Bouncing dots + step trail -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;">
+      <div class="preview-box" style="gap:18px;">
+        <div class="dots">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+        <div class="step-names">
+          <span>Parsing</span>
+          <span class="active-step">Analyzing</span>
+          <span>Writing</span>
+          <span>Rendering</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Bouncing dots + step trail</h3>
+      <p>Classic animated dots with a subtle step trail below. Lightweight, unobtrusive.</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:8px;">Click a card to select, or describe what feels right in the terminal.</p>

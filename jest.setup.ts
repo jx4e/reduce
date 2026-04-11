@@ -1,5 +1,12 @@
 import '@testing-library/jest-dom'
 
+// Polyfill TextEncoder/TextDecoder for jsdom (not available in older jsdom versions).
+if (typeof global.TextEncoder === 'undefined') {
+  const { TextEncoder, TextDecoder } = require('util')
+  global.TextEncoder = TextEncoder
+  global.TextDecoder = TextDecoder
+}
+
 // Guard: window/HTMLElement are only available in jsdom environment.
 if (typeof window !== 'undefined') {
   window.HTMLElement.prototype.scrollIntoView = jest.fn()

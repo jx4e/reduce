@@ -1,0 +1,67 @@
+<h2>Current generation screen</h2>
+<p class="subtitle">Here's what it looks like today — what feels lacking or needs improvement?</p>
+
+<div class="mockup" style="margin-top: 24px;">
+  <div class="mockup-header">reduce — /generate</div>
+  <div class="mockup-body" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:260px;gap:32px;padding:48px 24px;">
+    <p style="font-size:13px;color:var(--text-muted);">Generating your guide…</p>
+    <!-- Stepper -->
+    <div style="display:flex;align-items:center;gap:0;">
+      <!-- Stage 0: Parsing (active) -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div style="width:32px;height:32px;border-radius:50%;border:2px solid #6366f1;background:rgba(99,102,241,0.15);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#6366f1;">1</div>
+        <span style="font-size:11px;font-weight:500;color:#6366f1;">Parsing</span>
+      </div>
+      <div style="width:48px;height:1px;background:#333;"></div>
+      <!-- Stage 1: Analyzing -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div style="width:32px;height:32px;border-radius:50%;border:2px solid #444;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#888;">2</div>
+        <span style="font-size:11px;font-weight:500;color:#888;">Analyzing</span>
+      </div>
+      <div style="width:48px;height:1px;background:#333;"></div>
+      <!-- Stage 2: Writing -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div style="width:32px;height:32px;border-radius:50%;border:2px solid #444;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#888;">3</div>
+        <span style="font-size:11px;font-weight:500;color:#888;">Writing</span>
+      </div>
+      <div style="width:48px;height:1px;background:#333;"></div>
+      <!-- Stage 3: Rendering -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div style="width:32px;height:32px;border-radius:50%;border:2px solid #444;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#888;">4</div>
+        <span style="font-size:11px;font-weight:500;color:#888;">Rendering</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="options" data-multiselect style="margin-top:28px;">
+  <div class="option" data-choice="animation" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>More animation / visual energy</h3>
+      <p>Spinner, pulse, progress bar — feels alive while waiting</p>
+    </div>
+  </div>
+  <div class="option" data-choice="messaging" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Better messaging / copy</h3>
+      <p>More descriptive stage labels or context about what's happening</p>
+    </div>
+  </div>
+  <div class="option" data-choice="layout" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Layout / visual design overhaul</h3>
+      <p>Different structure — the numbered stepper doesn't feel right</p>
+    </div>
+  </div>
+  <div class="option" data-choice="error" onclick="toggleSelect(this)">
+    <div class="letter">D</div>
+    <div class="content">
+      <h3>Better error handling</h3>
+      <p>The error state is bare — retry logic, clearer messaging</p>
+    </div>
+  </div>
+</div>
+<p class="subtitle" style="margin-top:16px;">Select all that apply, or just tell me in the terminal.</p>

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import ReactMarkdown from 'react-markdown'
 import remarkMath from 'remark-math'
+import remarkGfm from 'remark-gfm'
 import rehypeKatex from 'rehype-katex'
 import katex from 'katex'
 import hljs from 'highlight.js'
@@ -296,7 +297,7 @@ export function MarkdownMessage({ content }: { content: string }) {
   if (!content) return null
   return (
     <ReactMarkdown
-      remarkPlugins={[remarkMath]}
+      remarkPlugins={[remarkMath, remarkGfm]}
       rehypePlugins={[rehypeKatex]}
       components={{
         p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
@@ -314,6 +315,18 @@ export function MarkdownMessage({ content }: { content: string }) {
           </pre>
         ),
         strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+        table: ({ children }) => (
+          <div className="overflow-x-auto my-2">
+            <table className="w-full text-xs border-collapse" style={{ borderColor: 'var(--border)' }}>{children}</table>
+          </div>
+        ),
+        thead: ({ children }) => <thead>{children}</thead>,
+        tbody: ({ children }) => <tbody>{children}</tbody>,
+        tr: ({ children }) => <tr style={{ borderBottom: '1px solid var(--border)' }}>{children}</tr>,
+        th: ({ children }) => (
+          <th className="px-2 py-1 text-left font-semibold" style={{ background: 'var(--surface)', borderBottom: '2px solid var(--border)' }}>{children}</th>
+        ),
+        td: ({ children }) => <td className="px-2 py-1">{children}</td>,
       }}
     >
       {content}
@@ -330,7 +343,7 @@ function ElementContent({ element }: { element: ContentElement }) {
     case 'paragraph':
       return (
         <ReactMarkdown
-          remarkPlugins={[remarkMath]}
+          remarkPlugins={[remarkMath, remarkGfm]}
           rehypePlugins={[rehypeKatex]}
           components={{
             p: ({ children }) => <p className="text-sm leading-7" style={{ color: 'var(--foreground)' }}>{children}</p>,
@@ -338,6 +351,20 @@ function ElementContent({ element }: { element: ContentElement }) {
             em: ({ children }) => <em className="italic">{children}</em>,
             code: ({ children }) => (
               <code className="rounded px-1 py-0.5 text-xs font-mono" style={{ background: 'var(--border)' }}>{children}</code>
+            ),
+            table: ({ children }) => (
+              <div className="overflow-x-auto my-3">
+                <table className="w-full text-sm border-collapse" style={{ borderColor: 'var(--border)' }}>{children}</table>
+              </div>
+            ),
+            thead: ({ children }) => <thead>{children}</thead>,
+            tbody: ({ children }) => <tbody>{children}</tbody>,
+            tr: ({ children }) => <tr style={{ borderBottom: '1px solid var(--border)' }}>{children}</tr>,
+            th: ({ children }) => (
+              <th className="px-3 py-2 text-left text-xs font-semibold" style={{ background: 'var(--surface)', color: 'var(--foreground)', borderBottom: '2px solid var(--border)' }}>{children}</th>
+            ),
+            td: ({ children }) => (
+              <td className="px-3 py-2 text-xs" style={{ color: 'var(--foreground)' }}>{children}</td>
             ),
           }}
         >

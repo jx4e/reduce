@@ -1,32 +1,34 @@
 <p align="center">
-  <img src="reduce-readme-banner.png" alt="reduce" width="700">
+  <img src="tldr-readme-banner.png" alt="tldr" width="700">
 </p>
 
 <p align="center">
-  <a href="https://github.com/jx4e/reduce/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="license"></a>
-  <a href="https://github.com/jx4e/reduce/stargazers"><img src="https://img.shields.io/github/stars/jx4e/reduce" alt="stars"></a>
+  <a href="https://github.com/jx4e/tldr/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="license"></a>
+  <a href="https://github.com/jx4e/tldr/stargazers"><img src="https://img.shields.io/github/stars/jx4e/tldr" alt="stars"></a>
 </p>
 
 ---
 
-**reduce** is an open-source AI study guide generator for CS and math students. Upload your lecture notes, slides, or PDFs — get a structured, interactive study guide back. Then ask questions about the material in a built-in chat interface, grounded in your own content.
+Your lecture notes are too long. You didn't read them. **tldr** fixes that.
 
-Create an account to save and access your guides from anywhere.
+Drop in your PDFs, slides, or notes and get back a structured, interactive study guide — the kind that actually makes sense of the material. Then ask questions about anything in it, grounded in your own content.
+
+Sign up to save guides and pick up where you left off from any device.
 
 ## Features
 
 - **Upload anything** — PDFs, slides, notes (multiple files per guide)
-- **AI-generated study guides** — structured for CS & math: formulas, intuition, worked examples, common pitfalls
-- **Interactive Q&A** — ask questions about the whole guide or click any element to ask about that specific part
-- **Modes** — Math/CS mode (LaTeX, code blocks) and Humanities mode (arguments, key thinkers, essay structure)
-- **User accounts** — sign up to save guides and access them from any device
-- **Free & open source** — fork it, self-host it, customize the prompts
+- **Instant study guides** — structured for CS & math: formulas, intuition, worked examples, common pitfalls
+- **Interactive Q&A** — ask questions about the whole guide, or click any element to dig into that specific part
+- **Two modes** — Math/CS (LaTeX, code blocks) and Humanities (arguments, key thinkers, essay structure)
+- **Saves your work** — guides live in your account, accessible from anywhere
+- **Free & open source** — fork it, self-host it, make the prompts yours
 
 ## Getting Started
 
 ```bash
-git clone https://github.com/jx4e/reduce
-cd reduce
+git clone https://github.com/jx4e/tldr
+cd tldr
 npm install
 ```
 
