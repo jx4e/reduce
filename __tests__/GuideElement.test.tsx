@@ -3,10 +3,17 @@ import userEvent from '@testing-library/user-event'
 import GuideElement from '@/components/GuideElement'
 import type { ContentElement } from '@/types/guide'
 
-// GuideElement uses createPortal — stub it for jsdom
 jest.mock('react-dom', () => ({
   ...jest.requireActual('react-dom'),
   createPortal: (node: React.ReactNode) => node,
+}))
+
+jest.mock('@/hooks/useElementChat', () => ({
+  useElementChat: jest.fn().mockReturnValue({
+    messages: [],
+    loading: false,
+    send: jest.fn(),
+  }),
 }))
 
 const paragraphElement: ContentElement = {
@@ -15,21 +22,15 @@ const paragraphElement: ContentElement = {
   content: "Maxwell's equations describe electromagnetism.",
 }
 
-const formulaElement: ContentElement = {
-  id: 'el-2',
-  type: 'formula',
-  content: '\\nabla \\cdot E = \\rho / \\epsilon_0',
-}
-
 describe('GuideElement', () => {
   it('renders paragraph content', () => {
-    render(<GuideElement element={paragraphElement} messages={[]} note="" onAsk={() => {}} onNoteChange={() => {}} />)
+    render(<GuideElement element={paragraphElement} guideId="guide-1" />)
     expect(screen.getByText(/Maxwell's equations/)).toBeInTheDocument()
   })
 
   it('shows context menu on right-click', async () => {
     const user = userEvent.setup()
-    render(<GuideElement element={paragraphElement} messages={[]} note="" onAsk={() => {}} onNoteChange={() => {}} />)
+    render(<GuideElement element={paragraphElement} guideId="guide-1" />)
     const content = screen.getByText(/Maxwell's equations/)
     await user.pointer({ keys: '[MouseRight]', target: content })
     expect(screen.getByText('Ask about this')).toBeInTheDocument()
@@ -37,7 +38,7 @@ describe('GuideElement', () => {
 
   it('opens chat modal when Ask about this is clicked', async () => {
     const user = userEvent.setup()
-    render(<GuideElement element={paragraphElement} messages={[]} note="" onAsk={() => {}} onNoteChange={() => {}} />)
+    render(<GuideElement element={paragraphElement} guideId="guide-1" />)
     const content = screen.getByText(/Maxwell's equations/)
     await user.pointer({ keys: '[MouseRight]', target: content })
     await user.click(screen.getByText('Ask about this'))
@@ -46,7 +47,7 @@ describe('GuideElement', () => {
 
   it('opens context menu after a 500ms long-press', () => {
     jest.useFakeTimers()
-    render(<GuideElement element={paragraphElement} messages={[]} note="" onAsk={() => {}} onNoteChange={() => {}} />)
+    render(<GuideElement element={paragraphElement} guideId="guide-1" />)
     const content = screen.getByText(/Maxwell's equations/)
 
     fireEvent.touchStart(content, { touches: [{ clientX: 100, clientY: 200 }] })
@@ -60,7 +61,7 @@ describe('GuideElement', () => {
 
   it('does not open context menu if touch ends before 500ms', () => {
     jest.useFakeTimers()
-    render(<GuideElement element={paragraphElement} messages={[]} note="" onAsk={() => {}} onNoteChange={() => {}} />)
+    render(<GuideElement element={paragraphElement} guideId="guide-1" />)
     const content = screen.getByText(/Maxwell's equations/)
 
     fireEvent.touchStart(content, { touches: [{ clientX: 100, clientY: 200 }] })
@@ -71,15 +72,17 @@ describe('GuideElement', () => {
     jest.useRealTimers()
   })
 
-  it('calls onAsk with element and question when form submitted', async () => {
+  it('calls send with question when form submitted', async () => {
+    const mockSend = jest.fn()
+    const { useElementChat } = jest.requireMock('@/hooks/useElementChat')
+    useElementChat.mockReturnValue({ messages: [], loading: false, send: mockSend })
+
     const user = userEvent.setup()
-    const onAsk = jest.fn()
-    render(<GuideElement element={paragraphElement} messages={[]} note="" onAsk={onAsk} onNoteChange={() => {}} />)
-    const content = screen.getByText(/Maxwell's equations/)
-    await user.pointer({ keys: '[MouseRight]', target: content })
+    render(<GuideElement element={paragraphElement} guideId="guide-1" />)
+    await user.pointer({ keys: '[MouseRight]', target: screen.getByText(/Maxwell's equations/) })
     await user.click(screen.getByText('Ask about this'))
     await user.type(screen.getByPlaceholderText(/what does this mean/i), 'What does this mean?')
     await user.click(screen.getByRole('button', { name: /submit question/i }))
-    expect(onAsk).toHaveBeenCalledWith(paragraphElement, 'What does this mean?')
+    expect(mockSend).toHaveBeenCalledWith('What does this mean?')
   })
 })
