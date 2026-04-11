@@ -80,7 +80,7 @@ export default async function LandingPage() {
             </h2>
           </FadeUp>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, background: 'var(--border)', border: '1px solid var(--border)', borderRadius: 6, overflow: 'hidden' }}>
             {[
               {
                 num: '01',
@@ -101,17 +101,9 @@ export default async function LandingPage() {
               <FadeUp
                 key={title}
                 delay={i * 0.1}
-                className="rounded-xl p-6"
-                style={{
-                  background: 'var(--background)',
-                  border: '1px solid var(--border)',
-                  position: 'relative',
-                  overflow: 'hidden',
-                }}
+                style={{ background: 'var(--background)', padding: '24px 20px' }}
               >
-                {/* Subtle top-edge accent line */}
-                <div style={{ position: 'absolute', top: 0, left: 24, right: 24, height: 1, background: 'linear-gradient(to right, transparent, var(--accent), transparent)', opacity: 0.6 }} />
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--accent)', marginBottom: 12, fontFamily: 'var(--font-mono, monospace)' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--muted-dark)', marginBottom: 12, fontFamily: 'var(--font-mono, monospace)' }}>
                   {num}
                 </div>
                 <div className="text-sm font-bold mb-2">{title}</div>
