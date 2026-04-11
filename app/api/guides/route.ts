@@ -40,6 +40,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid guide data' }, { status: 400 })
   }
 
+  // Verify project ownership when projectId is provided
+  if (body.projectId) {
+    const project = await prisma.project.findUnique({ where: { id: body.projectId } })
+    if (!project || project.userId !== session.user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+  }
+
   await prisma.guide.create({
     data: {
       id: body.id,
