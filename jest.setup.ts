@@ -1,5 +1,11 @@
 import '@testing-library/jest-dom'
 
+// Stub storage env vars so lib/storage.ts guards don't throw in tests.
+// The S3Client is mocked in storage tests; these values are never sent to AWS.
+process.env.STORAGE_ACCESS_KEY_ID = process.env.STORAGE_ACCESS_KEY_ID ?? 'test-access-key'
+process.env.STORAGE_SECRET_ACCESS_KEY = process.env.STORAGE_SECRET_ACCESS_KEY ?? 'test-secret-key'
+process.env.STORAGE_BUCKET_NAME = process.env.STORAGE_BUCKET_NAME ?? 'test-bucket'
+
 // Polyfill TextEncoder/TextDecoder for jsdom (not available in older jsdom versions).
 if (typeof global.TextEncoder === 'undefined') {
   const { TextEncoder, TextDecoder } = require('util')
