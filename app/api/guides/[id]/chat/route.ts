@@ -18,9 +18,9 @@ export type ChatEvent =
 
 export async function POST(
   request: NextRequest,
-  ctx: RouteContext<'/api/guides/[id]/chat'>
+  { params }: { params: Promise<{ id: string }> }
 ): Promise<Response> {
-  const { id } = await ctx.params
+  const { id } = await params
   const log = logger.child({ route: 'POST /api/guides/[id]/chat', guideId: id })
 
   let body: ChatRequestBody

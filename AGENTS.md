@@ -23,3 +23,9 @@ ESM packages that break Jest need a mock in `__mocks__/` and an entry in `jest.c
 - `components/elements/` — one file per element type; use `renderElement()` from the index, don't import element components directly
 - `components/guide/` — composed guide UI (GuideTOC, GuideContent, GuideChatPanel)
 - Chat streaming is handled by `streamChat` in `lib/chat.ts` — don't re-implement SSE inline
+
+## Avoiding merge conflicts
+
+Keep changes scoped to the files your task specifies. Don't refactor, reformat, or "improve" adjacent code you weren't asked to touch — that's the most common source of merge conflicts when multiple agents work in parallel.
+
+If you need to add shared logic, put it in a new file in `lib/` or `hooks/` rather than modifying an existing one.
