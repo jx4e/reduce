@@ -115,26 +115,23 @@ export default async function LandingPage() {
       </section>
 
       {/* ── CTA ─────────────────────────────────────────────────────── */}
-      <section style={{ position: 'relative', padding: '88px 24px', textAlign: 'center', overflow: 'hidden' }}>
-        {/* Background gradient */}
-        <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 60% 70% at 50% 100%, color-mix(in srgb, var(--accent) 10%, transparent), transparent)', pointerEvents: 'none' }} />
-
+      <section style={{ background: 'var(--accent)', padding: '88px 24px', textAlign: 'center' }}>
         <FadeUp>
-          <h2 style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 16 }}>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: 16, color: 'var(--background)' }}>
             ready to study smarter?
           </h2>
-          <p className="text-sm mb-8" style={{ color: 'var(--muted)' }}>
+          <p className="text-sm mb-8" style={{ color: 'var(--muted-dark)' }}>
             Free to get started. No credit card required.
           </p>
           <div className="flex items-center justify-center gap-4 flex-wrap">
             <Link
               href="/register"
-              className="rounded-full px-7 py-3 text-sm font-semibold"
-              style={{ background: 'var(--accent)', color: '#fff', boxShadow: '0 0 32px color-mix(in srgb, var(--accent) 45%, transparent)' }}
+              className="px-7 py-3 text-sm font-semibold"
+              style={{ background: 'var(--background)', color: 'var(--accent)', borderRadius: 3 }}
             >
               Create your first guide →
             </Link>
-            <Link href="/login" className="text-sm" style={{ color: 'var(--muted)' }}>
+            <Link href="/login" className="text-sm" style={{ color: 'var(--muted-dark)' }}>
               Sign in
             </Link>
           </div>
