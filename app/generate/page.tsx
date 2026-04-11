@@ -1,13 +1,29 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import Stepper from '@/components/Stepper'
-import { consumePending } from '@/lib/pendingGeneration'
+import { peekPending, clearPending } from '@/lib/pendingGeneration'
 import type { GenerateEvent } from '@/app/api/guides/generate/route'
 
-const STAGES = ['Parsing', 'Analyzing', 'Writing', 'Rendering']
+const STAGES = [
+  {
+    title: 'Reading your files…',
+    description: 'Extracting text and structure from your uploads',
+  },
+  {
+    title: 'Analyzing your material…',
+    description: 'Breaking down structure and key concepts',
+  },
+  {
+    title: 'Writing your guide…',
+    description: 'Generating sections, examples, and explanations',
+  },
+  {
+    title: 'Finishing up…',
+    description: 'Assembling the final guide',
+  },
+]
 
 const STAGE_INDEX: Record<string, number> = {
   parsing: 0,
@@ -16,74 +32,90 @@ const STAGE_INDEX: Record<string, number> = {
   rendering: 3,
 }
 
+// Progress bar settles here while each stage is active (just below next band start)
+const STAGE_SETTLE = [18, 47, 82, 97]
+
 export default function GeneratePage() {
   const router = useRouter()
   const [currentStage, setCurrentStage] = useState(0)
+  const [progress, setProgress] = useState(0)
+  const [isDone, setIsDone] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const started = useRef(false)
 
-  useEffect(() => {
-    if (started.current) return
-    started.current = true
+  const runGeneration = useCallback(async () => {
+    setError(null)
+    setCurrentStage(0)
+    setProgress(0)
+    setIsDone(false)
 
-    const pending = consumePending()
+    const pending = peekPending()
     if (!pending) {
       router.replace('/')
       return
     }
 
-    ;(async () => {
-      try {
-        const formData = new FormData()
-        pending.files.forEach(f => formData.append('files', f))
-        formData.append('mode', pending.mode)
+    try {
+      const formData = new FormData()
+      pending.files.forEach(f => formData.append('files', f))
+      formData.append('mode', pending.mode)
 
-        const res = await fetch('/api/guides/generate', { method: 'POST', body: formData })
+      const res = await fetch('/api/guides/generate', { method: 'POST', body: formData })
 
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({ error: 'Generation failed' }))
-          throw new Error(body.error ?? 'Generation failed')
-        }
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({ error: 'Generation failed' }))
+        throw new Error(body.error ?? 'Generation failed')
+      }
 
-        const reader = res.body!.getReader()
-        const decoder = new TextDecoder()
-        let buffer = ''
+      const reader = res.body!.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
 
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
 
-          buffer += decoder.decode(value, { stream: true })
-          const lines = buffer.split('\n')
-          buffer = lines.pop() ?? '' // keep incomplete last line
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() ?? ''
 
-          for (const line of lines) {
-            if (!line.startsWith('data: ')) continue
-            const event: GenerateEvent = JSON.parse(line.slice(6))
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue
+          const event: GenerateEvent = JSON.parse(line.slice(6))
 
-            if (event.type === 'stage') {
-              setCurrentStage(STAGE_INDEX[event.stage] ?? 0)
-            } else if (event.type === 'done') {
-              setCurrentStage(STAGES.length - 1)
-              const saveRes = await fetch('/api/guides', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(event.guide),
-              })
-              if (!saveRes.ok) throw new Error('Failed to save guide')
-              router.push(`/guide/${event.guide.id}`)
-              return
-            } else if (event.type === 'error') {
-              throw new Error(event.message)
-            }
+          if (event.type === 'stage') {
+            const idx = STAGE_INDEX[event.stage] ?? 0
+            setCurrentStage(idx)
+            setProgress(STAGE_SETTLE[idx])
+          } else if (event.type === 'done') {
+            setProgress(100)
+            setIsDone(true)
+
+            const saveRes = await fetch('/api/guides', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(event.guide),
+            })
+            if (!saveRes.ok) throw new Error('Failed to save guide')
+
+            clearPending()
+            setTimeout(() => router.push(`/guide/${event.guide.id}`), 600)
+            return
+          } else if (event.type === 'error') {
+            throw new Error(event.message)
           }
         }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Something went wrong')
       }
-    })()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong')
+    }
+  }, [router])
+
+  useEffect(() => {
+    if (started.current) return
+    started.current = true
+    runGeneration()
+  }, [runGeneration])
 
   if (error) {
     return (
@@ -94,19 +126,63 @@ export default function GeneratePage() {
         <p className="text-xs max-w-sm" style={{ color: 'var(--muted)' }}>
           {error}
         </p>
-        <Link href="/" className="text-xs font-semibold" style={{ color: 'var(--accent)' }}>
-          ← Try again
-        </Link>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={runGeneration}
+            className="rounded-full px-5 py-2 text-xs font-semibold"
+            style={{ background: 'var(--accent)', color: '#fff' }}
+          >
+            Retry
+          </button>
+          <Link
+            href="/app"
+            onClick={clearPending}
+            className="text-xs font-semibold"
+            style={{ color: 'var(--muted)' }}
+          >
+            ← Start over
+          </Link>
+        </div>
       </div>
     )
   }
 
+  const title = isDone ? 'Done!' : STAGES[currentStage].title
+  const description = isDone
+    ? 'Redirecting you to your guide…'
+    : STAGES[currentStage].description
+
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-10 px-6">
-      <p className="text-sm" style={{ color: 'var(--muted)' }}>
-        Generating your guide…
+    <div className="flex flex-1 flex-col items-center justify-center gap-6 px-6">
+      <div className="flex flex-col items-center gap-2 text-center">
+        <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
+          {title}
+        </p>
+        <p className="text-xs" style={{ color: 'var(--muted)' }}>
+          {description}
+        </p>
+      </div>
+
+      <div className="w-full max-w-sm">
+        <div
+          className="h-[3px] rounded-full overflow-hidden"
+          style={{ background: 'var(--border)' }}
+        >
+          <div
+            data-testid="progress-bar"
+            className="h-full rounded-full"
+            style={{
+              width: `${progress}%`,
+              background: 'linear-gradient(90deg, var(--accent), #a78bfa)',
+              transition: 'width 1.5s ease-out',
+            }}
+          />
+        </div>
+      </div>
+
+      <p className="text-xs" style={{ color: 'var(--muted)' }}>
+        Stage {currentStage + 1} of {STAGES.length}
       </p>
-      <Stepper stages={STAGES} currentStage={currentStage} />
     </div>
   )
 }
