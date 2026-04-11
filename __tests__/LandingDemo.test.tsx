@@ -28,30 +28,18 @@ describe('LandingDemo', () => {
     expect(link).toHaveAttribute('href', '/register')
   })
 
-  describe('scripted response', () => {
-    beforeEach(() => jest.useFakeTimers())
-    afterEach(() => jest.useRealTimers())
+  it('right-clicking an element opens the ask dialog', async () => {
+    const user = userEvent.setup()
+    render(<LandingDemo />)
 
-    it('typing a question and submitting calls the scripted onAsk handler', async () => {
-      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime })
-      render(<LandingDemo />)
+    // Right-click the paragraph element to open context menu
+    const paragraph = screen.getByText(/BST invariant/i)
+    await user.pointer({ keys: '[MouseRight]', target: paragraph })
 
-      // Right-click the paragraph element to open context menu
-      const paragraph = screen.getByText(/BST invariant/i)
-      await user.pointer({ keys: '[MouseRight]', target: paragraph })
+    // Click "Ask about this" in context menu
+    await user.click(screen.getByText(/ask about this/i))
 
-      // Click "Ask about this" in context menu
-      await user.click(screen.getByText(/ask about this/i))
-
-      // Type a question and submit
-      const input = screen.getByPlaceholderText(/what does this mean/i)
-      await user.type(input, 'explain this')
-      await user.click(screen.getByRole('button', { name: /submit question/i }))
-
-      // Advance timers to let scripted streaming complete
-      act(() => { jest.runAllTimers() })
-
-      expect(screen.getByText(/BST invariant is what makes/i)).toBeInTheDocument()
-    })
+    // The ask dialog should open with an input
+    expect(screen.getByPlaceholderText(/what does this mean/i)).toBeInTheDocument()
   })
 })

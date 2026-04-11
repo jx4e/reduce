@@ -10,6 +10,7 @@ const config: Config = {
     '^@/(.*)$': '<rootDir>/$1',
     '^react-markdown$': '<rootDir>/__mocks__/react-markdown.tsx',
     '^remark-math$': '<rootDir>/__mocks__/remark-math.js',
+    '^remark-gfm$': '<rootDir>/__mocks__/remark-gfm.js',
     '^rehype-katex$': '<rootDir>/__mocks__/rehype-katex.js',
     '^katex$': '<rootDir>/__mocks__/katex.js',
     '^framer-motion$': '<rootDir>/__mocks__/framer-motion.tsx',
