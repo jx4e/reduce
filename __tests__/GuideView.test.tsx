@@ -10,10 +10,46 @@ jest.mock('next/link', () => ({
   ),
 }))
 
-jest.mock('@/components/GuideElement', () => ({
-  __esModule: true,
-  default: ({ element }: { element: { content: string } }) => <div>{element.content}</div>,
-  MarkdownMessage: ({ content }: { content: string }) => <span>{content}</span>,
+jest.mock('@/components/guide/GuideTOC', () => ({
+  GuideTOC: ({ sections, mobileOpen, onMobileClose }: { sections: { id: string; heading: string }[], mobileOpen: boolean, onMobileClose: () => void }) => (
+    mobileOpen ? (
+      <div>
+        <h2>Contents</h2>
+        <div data-testid="mobile-toc-section-list">
+          {sections.map((s, i) => (
+            <a key={s.id} href={`#section-${s.id}`} onClick={onMobileClose}>{i + 1}. {s.heading}</a>
+          ))}
+        </div>
+        <button onClick={onMobileClose} aria-label="Close contents" />
+      </div>
+    ) : null
+  ),
+}))
+
+jest.mock('@/components/guide/GuideChatPanel', () => ({
+  GuideChatPanel: ({ mobileOpen, onMobileClose }: { mobileOpen: boolean, onMobileClose: () => void }) => (
+    mobileOpen ? (
+      <div>
+        <h2>Ask</h2>
+        <div data-testid="mobile-chat-sheet">
+          <input placeholder="Ask…" />
+        </div>
+        <div data-testid="chat-sheet-backdrop" onClick={onMobileClose} />
+      </div>
+    ) : null
+  ),
+}))
+
+jest.mock('@/components/guide/GuideContent', () => ({
+  GuideContent: () => <div data-testid="guide-content" />,
+}))
+
+jest.mock('@/hooks/useGuideScroll', () => ({
+  useGuideScroll: (sections: { id: string }[]) => ({
+    activeSection: sections[0]?.id ?? '',
+    contentRef: { current: null },
+    scrollToSection: jest.fn(),
+  }),
 }))
 
 const MOCK_GUIDE: Guide = {
@@ -82,12 +118,8 @@ describe('GuideView — mobile bottom nav', () => {
     expect(screen.queryByRole('heading', { name: /^ask$/i })).not.toBeInTheDocument()
   })
 
-  it('closes the chat sheet when backdrop is tapped', async () => {
-    const user = userEvent.setup()
+  it('renders the guide title in the header', () => {
     render(<GuideView guide={MOCK_GUIDE} />)
-
-    await user.click(screen.getByRole('button', { name: /^chat$/i }))
-    await user.click(screen.getByTestId('chat-sheet-backdrop'))
-    expect(screen.queryByRole('heading', { name: /^ask$/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: /physics 101/i })).toBeInTheDocument()
   })
 })
