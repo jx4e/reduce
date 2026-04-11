@@ -12,34 +12,21 @@ export default async function LandingPage() {
     <div className="flex flex-1 flex-col">
 
       {/* ── Hero ────────────────────────────────────────────────────── */}
-      <section className="relative flex flex-col items-center text-center px-6 pt-24 pb-20 overflow-hidden">
-
-        {/* Blurred colour orbs */}
-        <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', top: '-10%', left: '50%', transform: 'translateX(-50%)', width: 700, height: 400, background: 'radial-gradient(ellipse at center, color-mix(in srgb, var(--accent) 20%, transparent), transparent 70%)', filter: 'blur(40px)' }} />
-          <div style={{ position: 'absolute', top: '20%', left: '15%', width: 320, height: 320, background: 'radial-gradient(ellipse at center, color-mix(in srgb, #8b5cf6 14%, transparent), transparent 70%)', filter: 'blur(60px)' }} />
-          <div style={{ position: 'absolute', top: '10%', right: '10%', width: 280, height: 280, background: 'radial-gradient(ellipse at center, color-mix(in srgb, #06b6d4 10%, transparent), transparent 70%)', filter: 'blur(60px)' }} />
-        </div>
-
-        {/* Dot grid overlay */}
-        <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', backgroundImage: 'radial-gradient(circle, color-mix(in srgb, var(--foreground) 8%, transparent) 1px, transparent 1px)', backgroundSize: '28px 28px', maskImage: 'radial-gradient(ellipse 80% 80% at 50% 0%, black 40%, transparent 100%)' }} />
+      <section className="flex flex-col items-center text-center px-6 pt-24 pb-20" style={{ borderBottom: '1px solid var(--border)' }}>
 
         <HeroItem delay={0}>
-          <span
-            className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold tracking-wide mb-8"
-            style={{ borderColor: 'color-mix(in srgb, var(--accent) 40%, transparent)', color: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 8%, transparent)' }}
+          <div
+            className="text-xs font-semibold tracking-widest uppercase mb-8"
+            style={{ color: 'var(--muted)' }}
           >
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent)', display: 'inline-block' }} />
             AI study guides
-          </span>
+          </div>
         </HeroItem>
 
         <HeroItem delay={0.1}>
-          <h1 style={{ fontSize: 'clamp(42px, 7vw, 76px)', fontWeight: 800, lineHeight: 1.05, letterSpacing: '-0.04em', marginBottom: '1.25rem', maxWidth: '680px' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(42px, 7vw, 76px)', fontWeight: 800, lineHeight: 1.05, letterSpacing: '-0.02em', marginBottom: '1.25rem', maxWidth: '680px' }}>
             upload your notes.<br />
-            <span style={{ background: 'linear-gradient(135deg, var(--accent), #8b5cf6 50%, #06b6d4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-              get the tldr.
-            </span>
+            <em>get the tldr.</em>
           </h1>
         </HeroItem>
 
@@ -54,8 +41,8 @@ export default async function LandingPage() {
           <div className="flex items-center gap-3 flex-wrap justify-center">
             <Link
               href="/register"
-              className="rounded-full px-6 py-2.5 text-sm font-semibold"
-              style={{ background: 'var(--accent)', color: '#fff', boxShadow: '0 0 24px color-mix(in srgb, var(--accent) 50%, transparent)' }}
+              className="px-6 py-2.5 text-sm font-semibold"
+              style={{ background: 'var(--accent)', color: 'var(--background)', borderRadius: 3 }}
             >
               Start studying free →
             </Link>
