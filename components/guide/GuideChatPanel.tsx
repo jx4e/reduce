@@ -47,7 +47,7 @@ export function GuideChatPanel({ guide, mobileOpen, onMobileClose }: GuideChatPa
     </>
   )
 
-  const inputBar = (inputRefProp: React.RefObject<HTMLInputElement>, extraStyle?: React.CSSProperties) => (
+  const inputBar = (inputRefProp: React.RefObject<HTMLInputElement | null>, extraStyle?: React.CSSProperties) => (
     <div className="px-3 py-3 border-t shrink-0" style={{ borderColor: 'var(--border)' }}>
       <div className="flex gap-2 items-center rounded-lg px-3 py-2" style={{ background: 'var(--border)' }}>
         <input

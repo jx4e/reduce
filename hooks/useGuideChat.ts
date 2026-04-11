@@ -11,8 +11,8 @@ export interface UseGuideChatReturn {
   input: string
   setInput: (value: string) => void
   send: () => Promise<void>
-  chatEndRef: React.RefObject<HTMLDivElement>
-  inputRef: React.RefObject<HTMLInputElement>
+  chatEndRef: React.RefObject<HTMLDivElement | null>
+  inputRef: React.RefObject<HTMLInputElement | null>
 }
 
 export function useGuideChat(guide: Guide): UseGuideChatReturn {

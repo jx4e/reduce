@@ -1,9 +1,8 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import GuideElement from '@/components/GuideElement'
-import type { ContentElement, ChatMessage } from '@/types/guide'
+import type { ContentElement } from '@/types/guide'
 
 const DEMO_ELEMENTS: ContentElement[] = [
   {
@@ -32,86 +31,7 @@ const DEMO_ELEMENTS: ContentElement[] = [
   },
 ]
 
-const SCRIPTED_RESPONSES: Record<string, string> = {
-  'demo-heading':
-    'A Binary Search Tree is a fundamental data structure. The key property is that for every node, all values in its left subtree are smaller, and all values in its right subtree are larger. This invariant makes search, insert, and delete operations efficient at O(log n) on average.',
-  'demo-paragraph':
-    'The BST invariant is what makes the tree useful. Because smaller values always go left and larger values always go right, we can do binary search — at each node we eliminate half the remaining tree. This is why BSTs achieve O(log n) average-case operations.',
-  'demo-code':
-    "This recursive search function compares the target to the current node's value. If the target is smaller, go left; if larger, go right. Base cases: node is null (not found) or node.val equals target (found). Time complexity is O(h) where h is the height of the tree.",
-  'demo-formula':
-    'O(log n) average-case complexity assumes the tree is reasonably balanced. In the worst case — a sorted input creating a degenerate linear tree — operations degrade to O(n). This is why self-balancing variants like AVL trees and Red-Black trees exist.',
-}
-
 export default function LandingDemo() {
-  const msgIdCounter = useRef(0)
-  const streamIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const [elementChats, setElementChats] = useState<Map<string, ChatMessage[]>>(new Map())
-  const [elementNotes, setElementNotes] = useState<Map<string, string>>(new Map())
-  const [loadingElementId, setLoadingElementId] = useState<string | null>(null)
-
-  useEffect(() => {
-    return () => {
-      if (streamIntervalRef.current) clearInterval(streamIntervalRef.current)
-    }
-  }, [])
-
-  function handleAsk(element: ContentElement, question: string) {
-    if (streamIntervalRef.current) {
-      clearInterval(streamIntervalRef.current)
-      streamIntervalRef.current = null
-    }
-    const userMsg: ChatMessage = {
-      id: `demo-msg-${++msgIdCounter.current}`,
-      role: 'user',
-      content: question,
-      contextElementId: element.id,
-    }
-    setElementChats(prev => {
-      const next = new Map(prev)
-      next.set(element.id, [...(prev.get(element.id) ?? []), userMsg])
-      return next
-    })
-
-    setLoadingElementId(element.id)
-
-    const response = SCRIPTED_RESPONSES[element.id] ?? 'Great question! This is a key concept in the material.'
-    const assistantMsgId = `demo-msg-${++msgIdCounter.current}`
-
-    // Seed an empty assistant message
-    setElementChats(prev => {
-      const next = new Map(prev)
-      const existing = prev.get(element.id) ?? []
-      const assistantMsg: ChatMessage = { id: assistantMsgId, role: 'assistant', content: '' }
-      next.set(element.id, [...existing, assistantMsg])
-      return next
-    })
-
-    // Stream characters one at a time
-    let i = 0
-    streamIntervalRef.current = setInterval(() => {
-      i++
-      setElementChats(prev => {
-        const next = new Map(prev)
-        const msgs = prev.get(element.id) ?? []
-        next.set(
-          element.id,
-          msgs.map(m => m.id === assistantMsgId ? { ...m, content: response.slice(0, i) } : m),
-        )
-        return next
-      })
-      if (i >= response.length) {
-        clearInterval(streamIntervalRef.current!)
-        streamIntervalRef.current = null
-        setLoadingElementId(null)
-      }
-    }, 20)
-  }
-
-  function handleNoteChange(elementId: string, note: string) {
-    setElementNotes(prev => new Map(prev).set(elementId, note))
-  }
-
   return (
     <section className="py-16 px-6" style={{ borderBottom: '1px solid var(--border)' }}>
       <div className="w-full max-w-2xl mx-auto flex flex-col gap-8">
@@ -155,11 +75,7 @@ export default function LandingDemo() {
               <GuideElement
                 key={el.id}
                 element={el}
-                messages={elementChats.get(el.id) ?? []}
-                note={elementNotes.get(el.id) ?? ''}
-                loading={loadingElementId === el.id}
-                onAsk={handleAsk}
-                onNoteChange={handleNoteChange}
+                guideId="demo"
               />
             ))}
           </div>

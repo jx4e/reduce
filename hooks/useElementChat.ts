@@ -41,7 +41,7 @@ export function useElementChat(guideId: string, element: ContentElement): UseEle
         guideId,
         {
           messages: history.map(m => ({ role: m.role, content: m.content })),
-          context: { element: { type: element.type, content: element.content } },
+          context: { guideTitle: '', sectionHeadings: [], element: { type: element.type, content: element.content } },
         },
         (chunk) => {
           updateMessages(prev =>

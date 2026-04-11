@@ -6,7 +6,7 @@ import type { GuideSection } from '@/types/guide'
 interface GuideContentProps {
   sections: GuideSection[]
   guideId: string
-  contentRef: React.RefObject<HTMLDivElement>
+  contentRef: React.RefObject<HTMLDivElement | null>
 }
 
 export function GuideContent({ sections, guideId, contentRef }: GuideContentProps) {
