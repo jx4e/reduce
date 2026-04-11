@@ -42,6 +42,7 @@ export default function GeneratePage() {
   const [isDone, setIsDone] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const started = useRef(false)
+  const navTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const runGeneration = useCallback(async () => {
     setError(null)
@@ -99,7 +100,7 @@ export default function GeneratePage() {
             if (!saveRes.ok) throw new Error('Failed to save guide')
 
             clearPending()
-            setTimeout(() => router.push(`/guide/${event.guide.id}`), 600)
+            navTimeoutRef.current = setTimeout(() => router.push(`/guide/${event.guide.id}`), 600)
             return
           } else if (event.type === 'error') {
             throw new Error(event.message)
@@ -116,6 +117,12 @@ export default function GeneratePage() {
     started.current = true
     runGeneration()
   }, [runGeneration])
+
+  useEffect(() => {
+    return () => {
+      if (navTimeoutRef.current !== null) clearTimeout(navTimeoutRef.current)
+    }
+  }, [])
 
   if (error) {
     return (
