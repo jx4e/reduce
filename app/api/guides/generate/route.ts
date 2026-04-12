@@ -283,9 +283,8 @@ export async function POST(request: NextRequest): Promise<Response> {
             },
           })
         } catch (err) {
-          const message = err instanceof Error ? err.message : 'Failed to save guide'
           log.error({ err }, 'failed to save guide to database')
-          send(controller, { type: 'error', message })
+          send(controller, { type: 'error', message: 'Failed to save guide' })
           controller.close()
           return
         }
