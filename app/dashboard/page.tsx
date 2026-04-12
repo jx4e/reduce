@@ -54,7 +54,7 @@ export default function DashboardPage() {
   }
 
   function formatCost(n: number | null): string {
-    if (n === null) return '$0.00'
+    if (n === null) return '—'
     return `$${n.toFixed(4)}`
   }
 

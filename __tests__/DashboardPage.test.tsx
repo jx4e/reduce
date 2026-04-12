@@ -53,13 +53,7 @@ describe('DashboardPage usage stats', () => {
     render(<DashboardPage />)
     await waitFor(() => {
       const dashes = screen.getAllByText('—')
-      expect(dashes.length).toBeGreaterThanOrEqual(1)
+      expect(dashes.length).toBeGreaterThanOrEqual(2)
     })
-  })
-
-  it('shows $0.00 for cost when usage fetch fails', async () => {
-    mockFetch(null)
-    render(<DashboardPage />)
-    await waitFor(() => expect(screen.getByText('$0.00')).toBeInTheDocument())
   })
 })
