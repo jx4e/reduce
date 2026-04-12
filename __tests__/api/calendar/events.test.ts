@@ -158,6 +158,16 @@ describe('POST /api/calendar/events/batch', () => {
     expect(res.status).toBe(400)
   })
 
+  it('returns 400 when an event is missing required fields', async () => {
+    ;(auth as jest.Mock).mockResolvedValue(mockSession)
+    const events = [
+      { title: 'Valid Event', date: '2026-04-22T00:00:00Z', type: 'exam' },
+      { title: 'Missing type', date: '2026-04-22T00:00:00Z' }, // no type
+    ]
+    const res = await BATCH(makeReq('POST', events))
+    expect(res.status).toBe(400)
+  })
+
   it('creates multiple events and returns 201', async () => {
     ;(auth as jest.Mock).mockResolvedValue(mockSession)
     ;(prisma.studyEvent.createMany as jest.Mock).mockResolvedValue({ count: 2 })
