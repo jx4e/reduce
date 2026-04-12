@@ -10,6 +10,10 @@ interface Props {
 
 type Step = 'input' | 'review' | 'plan-review'
 
+type CandidateWithKey = CandidateEvent & { _key: string }
+
+const TYPE_OPTS: CandidateEvent['type'][] = ['exam', 'assignment', 'other']
+
 export default function ImportSyllabusModal({ onClose, onImported }: Props) {
   const [step, setStep] = useState<Step>('input')
   const [tab, setTab] = useState<'upload' | 'paste'>('upload')
@@ -18,34 +22,37 @@ export default function ImportSyllabusModal({ onClose, onImported }: Props) {
   const [extracting, setExtracting] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [candidates, setCandidates] = useState<CandidateEvent[]>([])
-  const [planCandidates, setPlanCandidates] = useState<CandidateEvent[]>([])
+  const [candidates, setCandidates] = useState<CandidateWithKey[]>([])
+  const [planCandidates, setPlanCandidates] = useState<CandidateWithKey[]>([])
   const [error, setError] = useState('')
 
   async function handleExtract() {
     setExtracting(true)
     setError('')
-
-    let res: Response
-    if (tab === 'upload' && file) {
-      const fd = new FormData()
-      fd.append('file', file)
-      res = await fetch('/api/calendar/extract', { method: 'POST', body: fd })
-    } else {
-      if (!text.trim()) { setError('Please paste some text first.'); setExtracting(false); return }
-      res = await fetch('/api/calendar/extract', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
-      })
+    try {
+      let res: Response
+      if (tab === 'upload' && file) {
+        const fd = new FormData()
+        fd.append('file', file)
+        res = await fetch('/api/calendar/extract', { method: 'POST', body: fd })
+      } else {
+        if (!text.trim()) { setError('Please paste some text first.'); return }
+        res = await fetch('/api/calendar/extract', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text }),
+        })
+      }
+      if (!res.ok) { setError('Extraction failed. Please try again.'); return }
+      const data: CandidateEvent[] = await res.json()
+      if (data.length === 0) { setError('No dates found. Try pasting more text.'); return }
+      setCandidates(data.map((ev, i) => ({ ...ev, _key: `${i}-${ev.title}` })))
+      setStep('review')
+    } catch {
+      setError('Network error. Please try again.')
+    } finally {
+      setExtracting(false)
     }
-
-    if (!res.ok) { setError('Extraction failed. Please try again.'); setExtracting(false); return }
-    const data: CandidateEvent[] = await res.json()
-    if (data.length === 0) { setError('No dates found. Try pasting more text.'); setExtracting(false); return }
-    setCandidates(data)
-    setStep('review')
-    setExtracting(false)
   }
 
   function removeCandidate(i: number) {
@@ -67,16 +74,21 @@ export default function ImportSyllabusModal({ onClose, onImported }: Props) {
   async function handleGeneratePlan() {
     setGenerating(true)
     setError('')
-    const res = await fetch('/api/calendar/generate-plan', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ events: candidates }),
-    })
-    if (!res.ok) { setError('Plan generation failed.'); setGenerating(false); return }
-    const sessions: CandidateEvent[] = await res.json()
-    setPlanCandidates(sessions)
-    setStep('plan-review')
-    setGenerating(false)
+    try {
+      const res = await fetch('/api/calendar/generate-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ events: candidates }),
+      })
+      if (!res.ok) { setError('Plan generation failed.'); return }
+      const sessions: CandidateEvent[] = await res.json()
+      setPlanCandidates(sessions.map((ev, i) => ({ ...ev, _key: `plan-${i}-${ev.title}` })))
+      setStep('plan-review')
+    } catch {
+      setError('Network error. Please try again.')
+    } finally {
+      setGenerating(false)
+    }
   }
 
   function removePlanCandidate(i: number) {
@@ -85,23 +97,27 @@ export default function ImportSyllabusModal({ onClose, onImported }: Props) {
 
   async function handleSave(includePlan: boolean) {
     setSaving(true)
-    const allEvents = includePlan ? [...candidates, ...planCandidates] : candidates
-    const payload = allEvents.map(e => ({
-      title: e.title,
-      date: e.date.includes('T') ? e.date : `${e.date}T00:00:00.000Z`,
-      duration: e.duration ?? null,
-      type: e.type as EventType,
-    }))
-    const res = await fetch('/api/calendar/events/batch', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
-    if (!res.ok) { setError('Failed to save events.'); setSaving(false); return }
-    onImported()
+    try {
+      const allEvents = includePlan ? [...candidates, ...planCandidates] : candidates
+      const payload = allEvents.map(e => ({
+        title: e.title,
+        date: e.date.includes('T') ? e.date : `${e.date}T00:00:00.000Z`,
+        duration: e.duration ?? null,
+        type: e.type as EventType,
+      }))
+      const res = await fetch('/api/calendar/events/batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) { setError('Failed to save events.'); return }
+      onImported()
+    } catch {
+      setError('Network error. Please try again.')
+    } finally {
+      setSaving(false)
+    }
   }
-
-  const TYPE_OPTS: CandidateEvent['type'][] = ['exam', 'assignment', 'other']
 
   return (
     <div
@@ -158,6 +174,13 @@ export default function ImportSyllabusModal({ onClose, onImported }: Props) {
                 <label
                   className="flex flex-col items-center justify-center gap-2 rounded-lg cursor-pointer"
                   style={{ border: '1px dashed var(--border-hover)', padding: '32px 16px', textAlign: 'center' }}
+                  onDragOver={e => { e.preventDefault(); e.stopPropagation() }}
+                  onDrop={e => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    const droppedFile = e.dataTransfer.files[0]
+                    if (droppedFile) setFile(droppedFile)
+                  }}
                 >
                   <span style={{ fontSize: 24 }}>📄</span>
                   <span className="text-sm" style={{ color: 'var(--muted)' }}>
@@ -190,7 +213,7 @@ export default function ImportSyllabusModal({ onClose, onImported }: Props) {
             <div className="flex flex-col gap-2">
               {candidates.map((ev, i) => (
                 <div
-                  key={i}
+                  key={ev._key}
                   className="flex items-center gap-2 rounded-lg px-3 py-2"
                   style={{ border: '1px solid var(--border)', background: 'var(--background)' }}
                 >
@@ -238,7 +261,7 @@ export default function ImportSyllabusModal({ onClose, onImported }: Props) {
               </p>
               {planCandidates.map((ev, i) => (
                 <div
-                  key={i}
+                  key={ev._key}
                   className="flex items-center gap-2 rounded-lg px-3 py-2"
                   style={{ border: '1px solid var(--border)', background: 'var(--background)' }}
                 >
