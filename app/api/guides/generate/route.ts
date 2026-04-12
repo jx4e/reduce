@@ -223,6 +223,15 @@ export async function POST(request: NextRequest): Promise<Response> {
             input_tokens: finalMessage.usage.input_tokens,
             output_tokens: finalMessage.usage.output_tokens,
           }, 'Claude finished')
+
+          prisma.tokenUsage.create({
+            data: {
+              userId: session.user!.id,
+              operation: 'generate',
+              inputTokens: finalMessage.usage.input_tokens,
+              outputTokens: finalMessage.usage.output_tokens,
+            },
+          }).catch(err => log.warn({ err }, 'failed to record token usage'))
         } catch (err) {
           const message = err instanceof Error ? err.message : 'AI service error'
           log.error({ err }, 'Anthropic API error')
