@@ -18,6 +18,7 @@ model User {
   guides        Guide[]
   projects      Project[]
   tokenUsage    TokenUsage[]
+  studyEvents   StudyEvent[]
   createdAt     DateTime      @default(now())
 }
 
@@ -75,15 +76,35 @@ model ProjectFile {
 }
 
 model Guide {
-  id        String   @id
-  userId    String
-  title     String
-  mode      String
-  content   Json
-  projectId String?
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  id          String       @id
+  userId      String
+  title       String
+  mode        String
+  content     Json
+  projectId   String?
+  createdAt   DateTime     @default(now())
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project     Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  studyEvents StudyEvent[]
+}
+
+model StudyEvent {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  date        DateTime
+  duration    Int?
+  type        String
+  guideId     String?
+  gcalEventId String?
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guide Guide? @relation(fields: [guideId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([date])
 }
 
 model TokenUsage {
