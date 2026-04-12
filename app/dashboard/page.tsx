@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import GuideCard from '@/components/GuideCard'
+import ThisWeekWidget from '@/components/calendar/ThisWeekWidget'
 import UploadZone from '@/components/UploadZone'
 import type { GuideCardData, GuideMode } from '@/types/guide'
 import type { ProjectCardData } from '@/types/project'
@@ -65,6 +66,7 @@ export default function DashboardPage() {
   const stats: StatCard[] = [
     { label: 'Guides', value: loaded ? String(guides.length) : '—', href: '/guides', linked: true },
     { label: 'Groups', value: loaded ? String(groups.length) : '—', href: '/groups', linked: true },
+    { label: 'Calendar', value: '—', href: '/calendar', linked: true },
     { label: 'Tokens', value: loaded ? formatTokens(totalTokens) : '—', linked: false },
     { label: 'Est. Cost', value: loaded ? formatCost(estimatedCostUsd) : '—', linked: false },
   ]
@@ -87,7 +89,7 @@ export default function DashboardPage() {
 
       {/* Stats row */}
       <div
-        className="grid grid-cols-4 gap-px mb-10 rounded-lg overflow-hidden"
+        className="grid grid-cols-5 gap-px mb-10 rounded-lg overflow-hidden"
         style={{ background: 'var(--border)' }}
       >
         {stats.map(stat => {
@@ -189,6 +191,9 @@ export default function DashboardPage() {
 
         {/* Right: quick generate + recent groups */}
         <div className="flex flex-col gap-8">
+
+          {/* This week */}
+          <ThisWeekWidget />
 
           {/* Quick generate */}
           <div className="flex flex-col gap-4">
