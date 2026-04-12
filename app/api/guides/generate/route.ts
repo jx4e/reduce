@@ -271,6 +271,16 @@ export async function POST(request: NextRequest): Promise<Response> {
           return
         }
 
+        // Verify project ownership before saving
+        if (projectId) {
+          const project = await prisma.project.findUnique({ where: { id: projectId } })
+          if (!project || project.userId !== session.user!.id) {
+            send(controller, { type: 'error', message: 'Forbidden' })
+            controller.close()
+            return
+          }
+        }
+
         try {
           await prisma.guide.create({
             data: {
