@@ -1,4 +1,5 @@
 // components/calendar/CalendarEvent.tsx
+import type { MouseEvent } from 'react'
 import type { StudyEventData, EventType } from '@/types/calendar'
 
 const TYPE_STYLES: Record<EventType, { border: string; bg: string; text: string }> = {
@@ -10,7 +11,7 @@ const TYPE_STYLES: Record<EventType, { border: string; bg: string; text: string 
 
 interface Props {
   event: StudyEventData
-  onClick?: (e?: React.MouseEvent) => void
+  onClick?: (e?: MouseEvent) => void
   /** 'chip' = compact grid chip; 'row' = dashboard widget row */
   variant?: 'chip' | 'row'
 }

@@ -34,18 +34,26 @@ function getDaysInMonth(year: number, month: number) {
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
+function dateKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
+
 export default function CalendarGrid({ year, month, events, onDayClick, onEventClick }: Props) {
   const days = useMemo(() => getDaysInMonth(year, month), [year, month])
-  const today = new Date()
 
-  function eventsForDay(date: Date) {
-    return events.filter(e => {
-      const d = new Date(e.date)
-      return d.getFullYear() === date.getFullYear()
-        && d.getMonth() === date.getMonth()
-        && d.getDate() === date.getDate()
-    })
-  }
+  const eventsByDate = useMemo(() => {
+    const map = new Map<string, StudyEventData[]>()
+    for (const ev of events) {
+      const d = new Date(ev.date)
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+      const arr = map.get(key) ?? []
+      arr.push(ev)
+      map.set(key, arr)
+    }
+    return map
+  }, [events])
+
+  const today = useMemo(() => new Date(), [])
 
   const isToday = (date: Date) =>
     date.getFullYear() === today.getFullYear() &&
@@ -80,7 +88,7 @@ export default function CalendarGrid({ year, month, events, onDayClick, onEventC
       {/* Day cells */}
       <div className="grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)' }}>
         {days.map(({ date, isCurrentMonth }, i) => {
-          const dayEvents = eventsForDay(date)
+          const dayEvents = eventsByDate.get(dateKey(date)) ?? []
           const today_ = isToday(date)
           return (
             <div

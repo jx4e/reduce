@@ -2,7 +2,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import CalendarGrid from '@/components/calendar/CalendarGrid'
 import AddEventModal from '@/components/calendar/AddEventModal'
 import EventDetailModal from '@/components/calendar/EventDetailModal'
@@ -12,12 +12,14 @@ import type { StudyEventData } from '@/types/calendar'
 export default function CalendarPage() {
   const searchParams = useSearchParams()
   const gcalParam = searchParams.get('gcal')
+  const router = useRouter()
 
   const today = new Date()
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth())
   const [events, setEvents] = useState<StudyEventData[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [hasGcalScope, setHasGcalScope] = useState<boolean | null>(null)
 
   // Modal state
@@ -26,11 +28,13 @@ export default function CalendarPage() {
   const [importModal, setImportModal] = useState(false)
 
   const fetchEvents = useCallback(async () => {
+    setError('')
     setLoading(true)
     const from = new Date(year, month, 1).toISOString()
     const to = new Date(year, month + 1, 0, 23, 59, 59).toISOString()
     const res = await fetch(`/api/calendar/events?from=${from}&to=${to}`)
     if (res.ok) setEvents(await res.json())
+    else setError('Failed to load events.')
     setLoading(false)
   }, [year, month])
 
@@ -44,6 +48,11 @@ export default function CalendarPage() {
 
   useEffect(() => { fetchEvents() }, [fetchEvents])
   useEffect(() => { fetchGcalStatus() }, [fetchGcalStatus])
+  useEffect(() => {
+    if (gcalParam) {
+      router.replace('/calendar')
+    }
+  }, [gcalParam, router])
 
   function prevMonth() {
     if (month === 0) { setYear(y => y - 1); setMonth(11) }
@@ -168,6 +177,11 @@ export default function CalendarPage() {
           />
         )
       }
+      {error && (
+        <div className="rounded-lg px-4 py-3 text-sm" style={{ background: '#fef2f2', border: '1px solid #fca5a5', color: '#dc2626' }}>
+          {error}
+        </div>
+      )}
 
       {/* Legend */}
       <div className="flex items-center gap-5" style={{ fontSize: 11, color: 'var(--muted)' }}>
