@@ -95,6 +95,8 @@ Rules:
           stop_reason: final.stop_reason,
         }, 'chat response done')
 
+        // Session check is intentionally non-enforcing: unauthenticated callers
+        // still receive a chat response; usage is simply not tracked for them.
         if (session?.user?.id) {
           prisma.tokenUsage.create({
             data: {
