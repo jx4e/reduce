@@ -75,7 +75,7 @@ describe('GeneratePage', () => {
     mockPeekPending.mockReturnValue(null)
     global.fetch = jest.fn()
     render(<GeneratePage />)
-    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/app'))
+    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/guides'))
   })
 
   it('advances stage title when a stage event arrives', async () => {
@@ -94,22 +94,14 @@ describe('GeneratePage', () => {
 
   it('shows Done! and navigates after 600ms on success', async () => {
     jest.useFakeTimers()
-    const guide = {
-      id: 'guide-abc',
-      title: 'Test Guide',
-      sections: [],
-      mode: 'math-cs',
-      createdAt: 'Apr 10, 2026',
-    }
-    global.fetch = jest.fn()
-      .mockResolvedValueOnce(makeStream({ type: 'done', guide }))
-      .mockResolvedValueOnce({ ok: true }) // save guide POST
+    global.fetch = jest.fn().mockResolvedValueOnce(
+      makeStream({ type: 'done', guideId: 'guide-abc' })
+    )
 
     render(<GeneratePage />)
 
     await waitFor(() => expect(screen.getByText('Done!')).toBeInTheDocument())
 
-    // Should NOT have navigated yet
     expect(mockPush).not.toHaveBeenCalled()
 
     act(() => { jest.advanceTimersByTime(600) })

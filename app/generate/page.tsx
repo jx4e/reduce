@@ -52,7 +52,7 @@ export default function GeneratePage() {
 
     const pending = peekPending()
     if (!pending) {
-      router.replace('/app')
+      router.replace('/guides')
       return
     }
 
@@ -62,6 +62,8 @@ export default function GeneratePage() {
       formData.append('mode', pending.mode)
       if (pending.projectId) formData.append('projectId', pending.projectId)
       if (pending.storedFileIds?.length) formData.append('storedFileIds', pending.storedFileIds.join(','))
+      if (pending.description) formData.append('description', pending.description)
+      if (pending.customTitle) formData.append('customTitle', pending.customTitle)
 
       const res = await fetch('/api/guides/generate', { method: 'POST', body: formData })
 
@@ -93,19 +95,8 @@ export default function GeneratePage() {
           } else if (event.type === 'done') {
             setProgress(100)
             setIsDone(true)
-
-            const saveRes = await fetch('/api/guides', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                ...event.guide,
-                projectId: peekPending()?.projectId,
-              }),
-            })
-            if (!saveRes.ok) throw new Error('Failed to save guide')
-
             clearPending()
-            navTimeoutRef.current = setTimeout(() => router.push(`/guide/${event.guide.id}`), 600)
+            navTimeoutRef.current = setTimeout(() => router.push(`/guide/${event.guideId}`), 600)
             return
           } else if (event.type === 'error') {
             throw new Error(event.message)
@@ -147,7 +138,7 @@ export default function GeneratePage() {
             Retry
           </button>
           <Link
-            href="/app"
+            href="/guides"
             onClick={clearPending}
             className="text-xs font-semibold"
             style={{ color: 'var(--muted)' }}
