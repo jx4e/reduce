@@ -18,7 +18,16 @@ export async function GET() {
     state: session.user.id,
   })
 
-  return NextResponse.redirect(
+  const response = NextResponse.redirect(
     `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
   )
+  // Set a short-lived cookie so the callback can verify this flow was initiated by the right user
+  response.cookies.set('gcal_state', session.user.id, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 300, // 5 minutes
+    path: '/',
+  })
+  return response
 }

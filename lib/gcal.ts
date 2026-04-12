@@ -22,15 +22,19 @@ export async function getGcalTokens(userId: string): Promise<GcalTokens | null> 
   // Refresh if expired (expires_at is Unix seconds)
   if (account.expires_at && account.expires_at < Math.floor(Date.now() / 1000) + 60) {
     if (!account.refresh_token) return null
-    const refreshed = await refreshAccessToken(account.refresh_token)
-    accessToken = refreshed.access_token
-    await prisma.account.update({
-      where: { provider_providerAccountId: { provider: 'google', providerAccountId: account.providerAccountId } },
-      data: {
-        access_token: refreshed.access_token,
-        expires_at: refreshed.expires_at,
-      },
-    })
+    try {
+      const refreshed = await refreshAccessToken(account.refresh_token)
+      accessToken = refreshed.access_token
+      await prisma.account.update({
+        where: { provider_providerAccountId: { provider: 'google', providerAccountId: account.providerAccountId } },
+        data: {
+          access_token: refreshed.access_token,
+          expires_at: refreshed.expires_at,
+        },
+      })
+    } catch {
+      return null
+    }
   }
 
   return {
@@ -66,7 +70,7 @@ export async function pushEventToGcal(
   const startDate = new Date(event.date)
   const endDate = event.duration
     ? new Date(startDate.getTime() + event.duration * 60_000)
-    : startDate
+    : new Date(startDate.getTime() + 24 * 60 * 60_000)
 
   const body = {
     summary: event.title,

@@ -8,8 +8,10 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
   const userId = searchParams.get('state')
+  const cookieState = request.cookies.get('gcal_state')?.value
 
-  if (!code || !userId) {
+  // Verify state matches cookie to prevent CSRF
+  if (!code || !userId || cookieState !== userId) {
     return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/calendar?gcal=error`)
   }
 
