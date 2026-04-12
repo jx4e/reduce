@@ -9,6 +9,7 @@ import type { StudyEventData } from '@/types/calendar'
 export default function ThisWeekWidget() {
   const [events, setEvents] = useState<StudyEventData[]>([])
   const [loaded, setLoaded] = useState(false)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
     const now = new Date()
@@ -23,12 +24,18 @@ export default function ThisWeekWidget() {
     sunday.setHours(23, 59, 59, 999)
 
     fetch(`/api/calendar/events?from=${monday.toISOString()}&to=${sunday.toISOString()}`)
-      .then(r => r.ok ? r.json() : [])
+      .then(r => {
+        if (!r.ok) throw new Error('Failed to load')
+        return r.json()
+      })
       .then((data: StudyEventData[]) => {
         setEvents(data)
         setLoaded(true)
       })
-      .catch(() => setLoaded(true))
+      .catch(() => {
+        setError(true)
+        setLoaded(true)
+      })
   }, [])
 
   return (
@@ -63,7 +70,13 @@ export default function ThisWeekWidget() {
           </div>
         )}
 
-        {loaded && events.length === 0 && (
+        {loaded && error && (
+          <div className="px-4 py-5 text-center">
+            <p className="text-xs" style={{ color: 'var(--muted)' }}>Could not load events.</p>
+          </div>
+        )}
+
+        {loaded && !error && events.length === 0 && (
           <div className="px-4 py-5 text-center">
             <p className="text-xs" style={{ color: 'var(--muted)' }}>Nothing scheduled this week.</p>
             <Link href="/calendar" className="text-xs font-semibold mt-1 inline-block" style={{ color: 'var(--accent)' }}>
@@ -72,7 +85,7 @@ export default function ThisWeekWidget() {
           </div>
         )}
 
-        {loaded && events.map((ev, i) => (
+        {loaded && !error && events.map((ev, i) => (
           <div
             key={ev.id}
             className="px-4 py-2.5"
