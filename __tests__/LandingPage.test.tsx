@@ -46,9 +46,9 @@ describe('LandingPage (/)', () => {
     expect(screen.getByTestId('landing-demo')).toBeInTheDocument()
   })
 
-  it('redirects to /app when authenticated', async () => {
+  it('redirects to /dashboard when authenticated', async () => {
     ;(auth as jest.Mock).mockResolvedValue({ user: { id: 'u1' } })
     await LandingPage()
-    expect(redirect).toHaveBeenCalledWith('/app')
+    expect(redirect).toHaveBeenCalledWith('/dashboard')
   })
 })

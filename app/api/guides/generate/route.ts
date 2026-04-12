@@ -5,10 +5,11 @@ import type { ContentBlock } from '@/lib/anthropic'
 import type { Guide, GuideSection, ContentElement, GuideMode } from '@/types/guide'
 import logger from '@/lib/logger'
 import { auth } from '@/auth'
+import { prisma } from '@/lib/db'
+import { uploadFile, getPresignedDownloadUrl } from '@/lib/storage'
 
 const ALLOWED_TYPES = new Set(['application/pdf', 'text/plain', 'text/markdown', 'text/x-markdown'])
 
-// Raw shape Claude returns (no ids)
 interface ClaudeElement {
   type: ContentElement['type']
   content?: string
@@ -62,7 +63,7 @@ function assignIds(raw: ClaudeGuide, mode: GuideMode): Guide {
 // SSE event types the client receives
 export type GenerateEvent =
   | { type: 'stage'; stage: 'parsing' | 'analyzing' | 'writing' | 'rendering' }
-  | { type: 'done'; guide: Guide }
+  | { type: 'done'; guideId: string }
   | { type: 'error'; message: string }
 
 export async function POST(request: NextRequest): Promise<Response> {
@@ -78,10 +79,14 @@ export async function POST(request: NextRequest): Promise<Response> {
     controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`))
   }
 
-  // Validate inputs before opening the stream so we can still return HTTP errors
   const formData = await request.formData()
   const files = formData.getAll('files') as File[]
   const rawMode = formData.get('mode') ?? 'math-cs'
+  const projectId = formData.get('projectId') as string | null
+  const storedFileIdsRaw = formData.get('storedFileIds') as string | null
+  const storedFileIds = storedFileIdsRaw ? storedFileIdsRaw.split(',').filter(Boolean) : []
+  const description = (formData.get('description') as string | null)?.trim() || null
+  const customTitle = (formData.get('customTitle') as string | null)?.trim() || null
 
   if (rawMode !== 'math-cs' && rawMode !== 'humanities') {
     log.warn({ rawMode }, 'invalid mode')
@@ -89,7 +94,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   }
   const mode: GuideMode = rawMode
 
-  if (files.length === 0) {
+  if (files.length === 0 && storedFileIds.length === 0) {
     return new Response(JSON.stringify({ error: 'No files provided' }), { status: 400 })
   }
 
@@ -115,31 +120,75 @@ export async function POST(request: NextRequest): Promise<Response> {
     )
   }
 
-  log.info({ mode, files: files.map(f => ({ name: f.name, size: f.size })) }, 'starting generation')
+  log.info({ mode, files: files.map(f => ({ name: f.name, size: f.size })), storedFileIds, projectId }, 'starting generation')
 
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        // Stage 1: Parsing
         send(controller, { type: 'stage', stage: 'parsing' })
-        let contentBlocks: ContentBlock[]
+
+        // Save new uploaded files to project (if projectId provided)
+        if (projectId && files.length > 0) {
+          for (const file of files) {
+            const key = `projects/${projectId}/${randomUUID()}-${file.name}`
+            const buffer = Buffer.from(await file.arrayBuffer())
+            await uploadFile(key, buffer, file.type)
+            await prisma.projectFile.create({
+              data: { projectId, name: file.name, size: file.size, mimeType: file.type, storageKey: key },
+            })
+          }
+        }
+
+        // Build content blocks from uploaded files
+        let uploadedBlocks: ContentBlock[]
         try {
-          contentBlocks = await Promise.all(files.map(fileToContentBlock))
-          log.info({ count: contentBlocks.length }, 'content blocks ready')
+          uploadedBlocks = await Promise.all(files.map(fileToContentBlock))
         } catch (err) {
           const message = err instanceof Error ? err.message : 'Failed to process uploaded files'
-          log.error({ err }, 'failed to build content blocks')
+          log.error({ err }, 'failed to build content blocks from uploads')
           send(controller, { type: 'error', message })
           controller.close()
           return
         }
 
-        // Stage 2: Analyzing — call Claude with streaming
+        // Build content blocks from stored files
+        let storedBlocks: ContentBlock[] = []
+        if (storedFileIds.length > 0) {
+          try {
+            const projectFiles = await prisma.projectFile.findMany({
+              where: {
+                id: { in: storedFileIds },
+                project: { userId: session.user!.id },
+              },
+            })
+            storedBlocks = await Promise.all(
+              projectFiles.map(async pf => {
+                const url = await getPresignedDownloadUrl(pf.storageKey)
+                const res = await fetch(url)
+                const buffer = Buffer.from(await res.arrayBuffer())
+                const file = new File([buffer], pf.name, { type: pf.mimeType })
+                return fileToContentBlock(file)
+              }),
+            )
+          } catch (err) {
+            const message = err instanceof Error ? err.message : 'Failed to fetch stored files'
+            log.error({ err }, 'failed to fetch stored files')
+            send(controller, { type: 'error', message })
+            controller.close()
+            return
+          }
+        }
+
+        const contentBlocks: ContentBlock[] = [...storedBlocks, ...uploadedBlocks]
+        log.info({ count: contentBlocks.length }, 'content blocks ready')
+
         send(controller, { type: 'stage', stage: 'analyzing' })
         log.info({ model: 'claude-sonnet-4-6', mode }, 'calling Claude')
 
         const client = getClient()
         let rawText = ''
+        let usageInputTokens = 0
+        let usageOutputTokens = 0
         try {
           const claudeStream = client.messages.stream({
             model: 'claude-sonnet-4-6',
@@ -150,13 +199,17 @@ export async function POST(request: NextRequest): Promise<Response> {
                 role: 'user',
                 content: [
                   ...contentBlocks,
-                  { type: 'text', text: 'Generate a study guide from the material above.' },
+                  {
+                    type: 'text',
+                    text: description
+                      ? `Generate a study guide from the material above.\n\nAdditional context from the user: ${description}`
+                      : 'Generate a study guide from the material above.',
+                  },
                 ],
               },
             ],
           })
 
-          // Advance to Writing once first token arrives
           let writingSignalled = false
           claudeStream.on('text', chunk => {
             rawText += chunk
@@ -167,10 +220,12 @@ export async function POST(request: NextRequest): Promise<Response> {
           })
 
           const finalMessage = await claudeStream.finalMessage()
+          usageInputTokens = finalMessage.usage.input_tokens
+          usageOutputTokens = finalMessage.usage.output_tokens
           log.info({
             stop_reason: finalMessage.stop_reason,
-            input_tokens: finalMessage.usage.input_tokens,
-            output_tokens: finalMessage.usage.output_tokens,
+            input_tokens: usageInputTokens,
+            output_tokens: usageOutputTokens,
           }, 'Claude finished')
         } catch (err) {
           const message = err instanceof Error ? err.message : 'AI service error'
@@ -180,7 +235,6 @@ export async function POST(request: NextRequest): Promise<Response> {
           return
         }
 
-        // Stage 3: Rendering — parse and assemble guide
         send(controller, { type: 'stage', stage: 'rendering' })
 
         if (!rawText) {
@@ -214,14 +268,52 @@ export async function POST(request: NextRequest): Promise<Response> {
         let guide: Guide
         try {
           guide = assignIds(parsed, mode)
+          if (customTitle) guide = { ...guide, title: customTitle }
         } catch {
           send(controller, { type: 'error', message: 'Failed to process Claude response' })
           controller.close()
           return
         }
 
-        log.info({ id: guide.id, title: guide.title, sections: guide.sections.length }, 'guide generated')
-        send(controller, { type: 'done', guide })
+        // Verify project ownership before saving
+        if (projectId) {
+          const project = await prisma.project.findUnique({ where: { id: projectId } })
+          if (!project || project.userId !== session.user!.id) {
+            send(controller, { type: 'error', message: 'Forbidden' })
+            controller.close()
+            return
+          }
+        }
+
+        try {
+          await prisma.guide.create({
+            data: {
+              id: guide.id,
+              userId: session.user!.id,
+              title: guide.title,
+              mode: guide.mode,
+              content: guide.sections,
+              ...(projectId ? { projectId } : {}),
+            },
+          })
+        } catch (err) {
+          log.error({ err }, 'failed to save guide to database')
+          send(controller, { type: 'error', message: 'Failed to save guide' })
+          controller.close()
+          return
+        }
+
+        prisma.tokenUsage.create({
+          data: {
+            userId: session.user!.id,
+            operation: 'generate',
+            inputTokens: usageInputTokens,
+            outputTokens: usageOutputTokens,
+          },
+        }).catch(err => log.warn({ err }, 'failed to record token usage'))
+
+        log.info({ id: guide.id, title: guide.title, sections: guide.sections.length }, 'guide saved')
+        send(controller, { type: 'done', guideId: guide.id })
         controller.close()
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unexpected error'

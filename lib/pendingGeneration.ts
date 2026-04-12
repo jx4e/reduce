@@ -3,6 +3,10 @@ import type { GuideMode } from '@/types/guide'
 interface PendingGeneration {
   files: File[]
   mode: GuideMode
+  projectId?: string
+  storedFileIds?: string[]
+  description?: string
+  customTitle?: string
 }
 
 let pending: PendingGeneration | null = null

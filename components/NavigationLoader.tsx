@@ -15,6 +15,7 @@ export default function NavigationLoader() {
       if (!anchor) return
       const href = anchor.getAttribute('href')
       if (!href || href.startsWith('#') || href.startsWith('http')) return
+      if (href === window.location.pathname) return
       setVisible(true)
     }
     document.addEventListener('click', handleClick)

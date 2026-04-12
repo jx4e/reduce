@@ -11,6 +11,9 @@ jest.mock('@/lib/db', () => ({
       findMany: jest.fn(),
       create: jest.fn(),
     },
+    project: {
+      findUnique: jest.fn(),
+    },
   },
 }))
 
@@ -61,6 +64,20 @@ describe('POST /api/guides', () => {
     expect(res.status).toBe(401)
   })
 
+  it('saves guide with projectId when provided', async () => {
+    ;(auth as jest.Mock).mockResolvedValue({ user: { id: 'user-1' } })
+    ;(prisma.project.findUnique as jest.Mock).mockResolvedValue({ id: 'p1', userId: 'user-1' })
+    ;(prisma.guide.create as jest.Mock).mockResolvedValue({})
+
+    const body = { id: 'g1', title: 'Calculus', mode: 'math-cs', sections: [], projectId: 'p1' }
+    const res = await POST(makeRequest('POST', body))
+
+    expect(res.status).toBe(201)
+    expect(prisma.guide.create).toHaveBeenCalledWith({
+      data: { id: 'g1', userId: 'user-1', title: 'Calculus', mode: 'math-cs', content: [], projectId: 'p1' },
+    })
+  })
+
   it('saves guide with userId and returns 201', async () => {
     ;(auth as jest.Mock).mockResolvedValue({ user: { id: 'user-1' } })
     ;(prisma.guide.create as jest.Mock).mockResolvedValue({})
@@ -72,5 +89,15 @@ describe('POST /api/guides', () => {
     expect(prisma.guide.create).toHaveBeenCalledWith({
       data: { id: 'g1', userId: 'user-1', title: 'Calculus', mode: 'math-cs', content: [] },
     })
+  })
+
+  it('returns 403 when projectId does not belong to current user', async () => {
+    ;(auth as jest.Mock).mockResolvedValue({ user: { id: 'user-1' } })
+    ;(prisma.project.findUnique as jest.Mock).mockResolvedValue({ id: 'p1', userId: 'user-2' })
+
+    const body = { id: 'g1', title: 'Calculus', mode: 'math-cs', sections: [], projectId: 'p1' }
+    const res = await POST(makeRequest('POST', body))
+
+    expect(res.status).toBe(403)
   })
 })

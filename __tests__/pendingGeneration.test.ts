@@ -28,4 +28,11 @@ describe('pendingGeneration', () => {
     expect(consumePending()).toEqual(data)
     expect(peekPending()).toBeNull()
   })
+
+  it('preserves projectId and storedFileIds through set and peek', () => {
+    setPending({ files: [], mode: 'math-cs', projectId: 'p1', storedFileIds: ['f1', 'f2'] })
+    const result = peekPending()
+    expect(result?.projectId).toBe('p1')
+    expect(result?.storedFileIds).toEqual(['f1', 'f2'])
+  })
 })

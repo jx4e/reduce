@@ -1,6 +1,8 @@
 import type { NextRequest } from 'next/server'
 import { getClient } from '@/lib/anthropic'
 import logger from '@/lib/logger'
+import { auth } from '@/auth'
+import { prisma } from '@/lib/db'
 
 export interface ChatRequestBody {
   messages: { role: 'user' | 'assistant'; content: string }[]
@@ -22,6 +24,7 @@ export async function POST(
 ): Promise<Response> {
   const { id } = await params
   const log = logger.child({ route: 'POST /api/guides/[id]/chat', guideId: id })
+  const session = await auth()
 
   let body: ChatRequestBody
   try {
@@ -91,6 +94,19 @@ Rules:
           output_tokens: final.usage.output_tokens,
           stop_reason: final.stop_reason,
         }, 'chat response done')
+
+        // Session check is intentionally non-enforcing: unauthenticated callers
+        // still receive a chat response; usage is simply not tracked for them.
+        if (session?.user?.id) {
+          prisma.tokenUsage.create({
+            data: {
+              userId: session.user.id,
+              operation: 'chat',
+              inputTokens: final.usage.input_tokens,
+              outputTokens: final.usage.output_tokens,
+            },
+          }).catch(err => log.warn({ err }, 'failed to record token usage'))
+        }
 
         send(controller, { type: 'done' })
         controller.close()

@@ -6,47 +6,34 @@ import { HeroItem, FadeUp } from '@/components/LandingAnimations'
 
 export default async function LandingPage() {
   const session = await auth()
-  if (session) redirect('/app')
+  if (session) redirect('/dashboard')
 
   return (
     <div className="flex flex-1 flex-col">
 
       {/* ── Hero ────────────────────────────────────────────────────── */}
-      <section className="relative flex flex-col items-center text-center px-6 pt-24 pb-20 overflow-hidden">
-
-        {/* Blurred colour orbs */}
-        <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', top: '-10%', left: '50%', transform: 'translateX(-50%)', width: 700, height: 400, background: 'radial-gradient(ellipse at center, color-mix(in srgb, var(--accent) 20%, transparent), transparent 70%)', filter: 'blur(40px)' }} />
-          <div style={{ position: 'absolute', top: '20%', left: '15%', width: 320, height: 320, background: 'radial-gradient(ellipse at center, color-mix(in srgb, #8b5cf6 14%, transparent), transparent 70%)', filter: 'blur(60px)' }} />
-          <div style={{ position: 'absolute', top: '10%', right: '10%', width: 280, height: 280, background: 'radial-gradient(ellipse at center, color-mix(in srgb, #06b6d4 10%, transparent), transparent 70%)', filter: 'blur(60px)' }} />
-        </div>
-
-        {/* Dot grid overlay */}
-        <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', backgroundImage: 'radial-gradient(circle, color-mix(in srgb, var(--foreground) 8%, transparent) 1px, transparent 1px)', backgroundSize: '28px 28px', maskImage: 'radial-gradient(ellipse 80% 80% at 50% 0%, black 40%, transparent 100%)' }} />
+      <section className="flex flex-col items-center text-center px-6 pt-24 pb-20" style={{ borderBottom: '1px solid var(--border)' }}>
 
         <HeroItem delay={0}>
-          <span
-            className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold tracking-wide mb-8"
-            style={{ borderColor: 'color-mix(in srgb, var(--accent) 40%, transparent)', color: 'var(--accent)', background: 'color-mix(in srgb, var(--accent) 8%, transparent)' }}
+          <div
+            className="text-xs font-semibold tracking-widest uppercase mb-8"
+            style={{ color: 'var(--muted)' }}
           >
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent)', display: 'inline-block' }} />
-            AI study guides
-          </span>
+            tl;dr
+          </div>
         </HeroItem>
 
         <HeroItem delay={0.1}>
-          <h1 style={{ fontSize: 'clamp(42px, 7vw, 76px)', fontWeight: 800, lineHeight: 1.05, letterSpacing: '-0.04em', marginBottom: '1.25rem', maxWidth: '680px' }}>
-            upload your notes.<br />
-            <span style={{ background: 'linear-gradient(135deg, var(--accent), #8b5cf6 50%, #06b6d4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-              get the tldr.
-            </span>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(42px, 7vw, 76px)', fontWeight: 800, lineHeight: 1.05, letterSpacing: '-0.02em', marginBottom: '1.25rem', maxWidth: '680px' }}>
+            study less.<br />
+            <em>remember more.</em>
           </h1>
         </HeroItem>
 
         <HeroItem delay={0.2}>
           <p style={{ fontSize: 17, color: 'var(--muted)', maxWidth: 400, lineHeight: 1.65, marginBottom: '2.25rem' }}>
-            Drop in your lecture notes, slides, or PDFs — get a structured,
-            interactive study guide back in seconds.
+            AI turns your lecture notes into a structured guide
+            you&apos;ll actually read.
           </p>
         </HeroItem>
 
@@ -54,8 +41,8 @@ export default async function LandingPage() {
           <div className="flex items-center gap-3 flex-wrap justify-center">
             <Link
               href="/register"
-              className="rounded-full px-6 py-2.5 text-sm font-semibold"
-              style={{ background: 'var(--accent)', color: '#fff', boxShadow: '0 0 24px color-mix(in srgb, var(--accent) 50%, transparent)' }}
+              className="px-6 py-2.5 text-sm font-semibold"
+              style={{ background: 'var(--accent)', color: 'var(--background)', borderRadius: 3 }}
             >
               Start studying free →
             </Link>
@@ -93,7 +80,7 @@ export default async function LandingPage() {
             </h2>
           </FadeUp>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, background: 'var(--border)', border: '1px solid var(--border)', borderRadius: 6, overflow: 'hidden' }}>
             {[
               {
                 num: '01',
@@ -114,17 +101,9 @@ export default async function LandingPage() {
               <FadeUp
                 key={title}
                 delay={i * 0.1}
-                className="rounded-xl p-6"
-                style={{
-                  background: 'var(--background)',
-                  border: '1px solid var(--border)',
-                  position: 'relative',
-                  overflow: 'hidden',
-                }}
+                style={{ background: 'var(--background)', padding: '24px 20px' }}
               >
-                {/* Subtle top-edge accent line */}
-                <div style={{ position: 'absolute', top: 0, left: 24, right: 24, height: 1, background: 'linear-gradient(to right, transparent, var(--accent), transparent)', opacity: 0.6 }} />
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--accent)', marginBottom: 12, fontFamily: 'var(--font-mono, monospace)' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--muted-dark)', marginBottom: 12, fontFamily: 'var(--font-mono, monospace)' }}>
                   {num}
                 </div>
                 <div className="text-sm font-bold mb-2">{title}</div>
@@ -136,26 +115,23 @@ export default async function LandingPage() {
       </section>
 
       {/* ── CTA ─────────────────────────────────────────────────────── */}
-      <section style={{ position: 'relative', padding: '88px 24px', textAlign: 'center', overflow: 'hidden' }}>
-        {/* Background gradient */}
-        <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 60% 70% at 50% 100%, color-mix(in srgb, var(--accent) 10%, transparent), transparent)', pointerEvents: 'none' }} />
-
+      <section style={{ background: 'var(--accent)', padding: '88px 24px', textAlign: 'center' }}>
         <FadeUp>
-          <h2 style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 16 }}>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: 16, color: 'var(--background)' }}>
             ready to study smarter?
           </h2>
-          <p className="text-sm mb-8" style={{ color: 'var(--muted)' }}>
+          <p className="text-sm mb-8" style={{ color: 'var(--muted-dark)' }}>
             Free to get started. No credit card required.
           </p>
           <div className="flex items-center justify-center gap-4 flex-wrap">
             <Link
               href="/register"
-              className="rounded-full px-7 py-3 text-sm font-semibold"
-              style={{ background: 'var(--accent)', color: '#fff', boxShadow: '0 0 32px color-mix(in srgb, var(--accent) 45%, transparent)' }}
+              className="px-7 py-3 text-sm font-semibold"
+              style={{ background: 'var(--background)', color: 'var(--accent)', borderRadius: 3 }}
             >
               Create your first guide →
             </Link>
-            <Link href="/login" className="text-sm" style={{ color: 'var(--muted)' }}>
+            <Link href="/login" className="text-sm" style={{ color: 'var(--muted-dark)' }}>
               Sign in
             </Link>
           </div>

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Geist, Geist_Mono, Playfair_Display } from 'next/font/google'
 import Navbar from '@/components/Navbar'
 import NavigationLoader from '@/components/NavigationLoader'
 import './globals.css'
@@ -16,6 +16,12 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 })
 
+const playfairDisplay = Playfair_Display({
+  variable: '--font-playfair',
+  subsets: ['latin'],
+  style: ['normal', 'italic'],
+})
+
 export const metadata: Metadata = {
   title: 'tldr. — AI study guides',
   description:
@@ -28,7 +34,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${playfairDisplay.variable} h-full antialiased`}
     >
       <body className="h-full flex flex-col" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
         <NavigationLoader />

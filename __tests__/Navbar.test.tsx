@@ -31,4 +31,10 @@ describe('Navbar', () => {
     expect(screen.getByRole('img', { name: /avatar/i })).toBeInTheDocument()
     expect(screen.getByText('Sign out')).toBeInTheDocument()
   })
+
+  it('renders Groups link when authenticated', async () => {
+    ;(auth as jest.Mock).mockResolvedValue({ user: { id: 'user-1', name: 'Jake' } })
+    render(await Navbar())
+    expect(screen.getByRole('link', { name: /groups/i })).toBeInTheDocument()
+  })
 })
