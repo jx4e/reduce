@@ -30,31 +30,48 @@ export default function EventDetailModal({ event, onClose, onUpdated, onDeleted 
   const [notes, setNotes] = useState(event.notes ?? '')
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [error, setError] = useState('')
 
   async function handleSave() {
     setSaving(true)
-    const isoDate = time ? `${date}T${time}:00Z` : `${date}T00:00:00Z`
-    await fetch(`/api/calendar/events/${event.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title,
-        date: isoDate,
-        duration: duration ? parseInt(duration, 10) : null,
-        type,
-        notes: notes.trim() || null,
-      }),
-    })
-    setSaving(false)
-    onUpdated()
+    setError('')
+    try {
+      const isoDate = time
+        ? new Date(`${date}T${time}`).toISOString()
+        : `${date}T00:00:00.000Z`
+      const res = await fetch(`/api/calendar/events/${event.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          date: isoDate,
+          duration: duration ? parseInt(duration, 10) : null,
+          type,
+          notes: notes.trim() || null,
+        }),
+      })
+      if (!res.ok) { setError('Failed to save. Please try again.'); return }
+      onUpdated()
+    } catch {
+      setError('Network error. Please try again.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   async function handleDelete() {
-    await fetch(`/api/calendar/events/${event.id}`, { method: 'DELETE' })
-    onDeleted()
+    try {
+      const res = await fetch(`/api/calendar/events/${event.id}`, { method: 'DELETE' })
+      if (!res.ok) { setError('Failed to delete. Please try again.'); setConfirmDelete(false); return }
+      onDeleted()
+    } catch {
+      setError('Network error. Please try again.')
+      setConfirmDelete(false)
+    }
   }
 
   const formattedDate = new Date(event.date).toLocaleDateString('en-US', {
+    timeZone: 'UTC',
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   })
 
@@ -133,6 +150,8 @@ export default function EventDetailModal({ event, onClose, onUpdated, onDeleted 
               </select>
               <input
                 type="number"
+                min="5"
+                max="480"
                 placeholder="Duration (min)"
                 value={duration}
                 onChange={e => setDuration(e.target.value)}
@@ -150,6 +169,8 @@ export default function EventDetailModal({ event, onClose, onUpdated, onDeleted 
             />
           </div>
         )}
+
+        {error && <p className="text-xs" style={{ color: '#dc2626' }}>{error}</p>}
 
         {confirmDelete ? (
           <div className="flex flex-col gap-3">

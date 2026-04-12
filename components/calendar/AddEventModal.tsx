@@ -18,7 +18,10 @@ const EVENT_TYPES: { value: EventType; label: string }[] = [
 ]
 
 function toInputDate(date: Date) {
-  return date.toISOString().split('T')[0]
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
 }
 
 export default function AddEventModal({ defaultDate, onClose, onCreated }: Props) {
@@ -37,7 +40,9 @@ export default function AddEventModal({ defaultDate, onClose, onCreated }: Props
     setSaving(true)
     setError('')
 
-    const isoDate = time ? `${date}T${time}:00Z` : `${date}T00:00:00Z`
+    const isoDate = time
+      ? new Date(`${date}T${time}`).toISOString()
+      : `${date}T00:00:00.000Z`
 
     const res = await fetch('/api/calendar/events', {
       method: 'POST',
