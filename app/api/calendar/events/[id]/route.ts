@@ -31,6 +31,7 @@ export async function PUT(
   })
 
   // Update GCal event if connected
+  let finalGcalId = updated.gcalEventId
   const tokens = await getGcalTokens(session.user.id)
   if (tokens?.hasCalendarScope && updated.gcalEventId) {
     try {
@@ -42,6 +43,7 @@ export async function PUT(
         notes: updated.notes,
       })
       await prisma.studyEvent.update({ where: { id }, data: { gcalEventId: newGcalId } })
+      finalGcalId = newGcalId
     } catch {
       // non-fatal
     }
@@ -54,7 +56,7 @@ export async function PUT(
     duration: updated.duration,
     type: updated.type as StudyEventData['type'],
     guideId: updated.guideId,
-    gcalEventId: updated.gcalEventId,
+    gcalEventId: finalGcalId,
     notes: updated.notes,
     createdAt: updated.createdAt.toISOString(),
   }

@@ -13,6 +13,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Body must be an array of events' }, { status: 400 })
   }
 
+  const invalid = body.some(e => !e.title || !e.date || !e.type)
+  if (invalid) {
+    return NextResponse.json({ error: 'Each event must have title, date, and type' }, { status: 400 })
+  }
+
   const data = body.map(e => ({
     userId: session.user.id,
     title: e.title,

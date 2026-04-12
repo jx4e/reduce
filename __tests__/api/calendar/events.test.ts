@@ -108,6 +108,43 @@ describe('DELETE /api/calendar/events/[id]', () => {
   })
 })
 
+describe('PUT /api/calendar/events/[id]', () => {
+  it('returns 401 when not authenticated', async () => {
+    ;(auth as jest.Mock).mockResolvedValue(null)
+    const res = await PUT(makeReq('PUT', { title: 'Updated' }), { params: Promise.resolve({ id: 'ev-1' }) })
+    expect(res.status).toBe(401)
+  })
+
+  it('returns 404 when event not found or wrong owner', async () => {
+    ;(auth as jest.Mock).mockResolvedValue(mockSession)
+    ;(prisma.studyEvent.findUnique as jest.Mock).mockResolvedValue(null)
+    const res = await PUT(makeReq('PUT', { title: 'Updated' }), { params: Promise.resolve({ id: 'ev-1' }) })
+    expect(res.status).toBe(404)
+  })
+
+  it('returns 404 when event belongs to different user', async () => {
+    ;(auth as jest.Mock).mockResolvedValue(mockSession)
+    ;(prisma.studyEvent.findUnique as jest.Mock).mockResolvedValue({ id: 'ev-1', userId: 'other-user' })
+    const res = await PUT(makeReq('PUT', { title: 'Updated' }), { params: Promise.resolve({ id: 'ev-1' }) })
+    expect(res.status).toBe(404)
+  })
+
+  it('updates event and returns 200 with correct data', async () => {
+    ;(auth as jest.Mock).mockResolvedValue(mockSession)
+    const eventRecord = {
+      id: 'ev-1', userId: 'user-1', title: 'Updated Exam', date: new Date('2026-04-22'),
+      duration: null, type: 'exam', guideId: null, gcalEventId: null, notes: null, createdAt: new Date(),
+    }
+    ;(prisma.studyEvent.findUnique as jest.Mock).mockResolvedValue({ id: 'ev-1', userId: 'user-1' })
+    ;(prisma.studyEvent.update as jest.Mock).mockResolvedValue(eventRecord)
+    const res = await PUT(makeReq('PUT', { title: 'Updated Exam' }), { params: Promise.resolve({ id: 'ev-1' }) })
+    expect(res.status).toBe(200)
+    const data = await res.json()
+    expect(data.title).toBe('Updated Exam')
+    expect(data.id).toBe('ev-1')
+  })
+})
+
 describe('POST /api/calendar/events/batch', () => {
   it('returns 401 when not authenticated', async () => {
     ;(auth as jest.Mock).mockResolvedValue(null)
