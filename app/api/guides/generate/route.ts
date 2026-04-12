@@ -292,7 +292,7 @@ export async function POST(request: NextRequest): Promise<Response> {
               userId: session.user!.id,
               title: guide.title,
               mode: guide.mode,
-              content: guide.sections,
+              content: guide.sections as object[],
               ...(projectId ? { projectId } : {}),
             },
           })
