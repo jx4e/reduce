@@ -57,7 +57,8 @@ export default function AddEventModal({ defaultDate, onClose, onCreated }: Props
     })
 
     if (!res.ok) {
-      setError('Failed to create event. Please try again.')
+      const body = await res.json().catch(() => ({}))
+      setError(body.error ?? `Failed to create event (${res.status}). Please try again.`)
       setSaving(false)
       return
     }

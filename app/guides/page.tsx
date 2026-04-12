@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import UploadZone from '@/components/UploadZone'
 import GuideCard from '@/components/GuideCard'
+import GenerateAdvancedOptions from '@/components/GenerateAdvancedOptions'
 import type { GuideCardData, GuideMode } from '@/types/guide'
 import { setPending } from '@/lib/pendingGeneration'
 
@@ -12,6 +13,8 @@ export default function AppPage() {
   const [files, setFiles] = useState<File[]>([])
   const [mode, setMode] = useState<GuideMode>('math-cs')
   const [guides, setGuides] = useState<GuideCardData[]>([])
+  const [search, setSearch] = useState('')
+  const [advanced, setAdvanced] = useState({ description: '', customTitle: '' })
 
   useEffect(() => {
     fetch('/api/guides')
@@ -20,9 +23,13 @@ export default function AppPage() {
       .catch(() => {})
   }, [])
 
+  const filteredGuides = guides.filter(g =>
+    g.title.toLowerCase().includes(search.toLowerCase())
+  )
+
   function handleGenerate() {
     if (files.length === 0) return
-    setPending({ files, mode })
+    setPending({ files, mode, ...advanced })
     router.push('/generate')
   }
 
@@ -32,7 +39,10 @@ export default function AppPage() {
 
         {/* Upload section */}
         <section className="flex flex-col gap-6">
-          <h1 className="text-2xl font-semibold tracking-tight">
+          <h1
+            className="text-3xl font-bold tracking-tight"
+            style={{ fontFamily: 'var(--font-display)', letterSpacing: '-0.02em' }}
+          >
             Upload your material
           </h1>
 
@@ -58,6 +68,8 @@ export default function AppPage() {
             </div>
           </div>
 
+          <GenerateAdvancedOptions onChange={setAdvanced} />
+
           {/* Generate button */}
           <button
             onClick={handleGenerate}
@@ -69,17 +81,29 @@ export default function AppPage() {
           </button>
         </section>
 
-        {/* Recent guides */}
+        {/* Guides list */}
         {guides.length > 0 && (
           <section className="flex flex-col gap-4">
-            <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>
-              Recent Guides
-            </h2>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {guides.map(guide => (
-                <GuideCard key={guide.id} guide={guide} />
-              ))}
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="text-xs font-semibold uppercase tracking-widest shrink-0" style={{ color: 'var(--muted)' }}>
+                Your Guides
+              </h2>
+              <input
+                type="search"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search guides…"
+                className="rounded border px-3 py-1 text-sm outline-none w-48"
+                style={{ borderColor: 'var(--border)', background: 'var(--surface)', color: 'var(--foreground)' }}
+              />
             </div>
+            {filteredGuides.length > 0 ? (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {filteredGuides.map(guide => <GuideCard key={guide.id} guide={guide} />)}
+              </div>
+            ) : (
+              <p className="text-sm" style={{ color: 'var(--muted)' }}>No guides match &ldquo;{search}&rdquo;.</p>
+            )}
           </section>
         )}
 

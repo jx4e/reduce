@@ -15,16 +15,22 @@ export async function POST(request: NextRequest) {
   }
 
   const today = new Date().toISOString().split('T')[0]
-  const { sessions, inputTokens, outputTokens } = await generateStudyPlan(body.events, today)
 
-  await prisma.tokenUsage.create({
-    data: {
-      userId: session.user.id,
-      operation: 'calendar-generate-plan',
-      inputTokens,
-      outputTokens,
-    },
-  })
+  try {
+    const { sessions, inputTokens, outputTokens } = await generateStudyPlan(body.events, today)
 
-  return NextResponse.json(sessions)
+    await prisma.tokenUsage.create({
+      data: {
+        userId: session.user.id,
+        operation: 'calendar-generate-plan',
+        inputTokens,
+        outputTokens,
+      },
+    })
+
+    return NextResponse.json(sessions)
+  } catch (err) {
+    console.error('[calendar/generate-plan]', err)
+    return NextResponse.json({ error: 'Plan generation failed' }, { status: 500 })
+  }
 }

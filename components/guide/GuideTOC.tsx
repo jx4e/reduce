@@ -1,7 +1,7 @@
 // components/guide/GuideTOC.tsx
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { GuideSection } from '@/types/guide'
 
 interface GuideTOCProps {
@@ -14,6 +14,17 @@ interface GuideTOCProps {
 
 export function GuideTOC({ sections, activeSection, onSectionClick, mobileOpen, onMobileClose }: GuideTOCProps) {
   const [desktopOpen, setDesktopOpen] = useState(true)
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'b' && e.metaKey && !e.shiftKey) {
+        e.preventDefault()
+        setDesktopOpen(open => !open)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   return (
     <>

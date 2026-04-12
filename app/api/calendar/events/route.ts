@@ -55,17 +55,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'title, date, and type are required' }, { status: 400 })
   }
 
-  const event = await prisma.studyEvent.create({
-    data: {
-      userId: session.user.id,
-      title: body.title,
-      date: new Date(body.date),
-      duration: body.duration ?? null,
-      type: body.type,
-      guideId: body.guideId ?? null,
-      notes: body.notes ?? null,
-    },
-  })
+  let event
+  try {
+    event = await prisma.studyEvent.create({
+      data: {
+        userId: session.user.id,
+        title: body.title,
+        date: new Date(body.date),
+        duration: body.duration ?? null,
+        type: body.type,
+        guideId: body.guideId ?? null,
+        notes: body.notes ?? null,
+      },
+    })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('[calendar/events POST]', message)
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
 
   // Push to GCal if connected
   const tokens = await getGcalTokens(session.user.id)

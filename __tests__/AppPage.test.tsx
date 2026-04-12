@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react'
-import AppPage from '@/app/app/page'
+import AppPage from '@/app/guides/page'
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: jest.fn() }),
@@ -13,7 +13,7 @@ global.fetch = jest.fn().mockResolvedValue({
   json: async () => [],
 }) as jest.Mock
 
-describe('AppPage (/app)', () => {
+describe('AppPage (/guides)', () => {
   it('renders the upload zone', async () => {
     render(<AppPage />)
     await waitFor(() => {

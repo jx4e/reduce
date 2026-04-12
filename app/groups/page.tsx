@@ -8,6 +8,7 @@ export default function GroupsPage() {
   const router = useRouter()
   const [groups, setGroups] = useState<ProjectCardData[]>([])
   const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [newName, setNewName] = useState('')
   const [creating, setCreating] = useState(false)
@@ -38,12 +39,21 @@ export default function GroupsPage() {
     }
   }
 
+  const filteredGroups = groups.filter(g =>
+    g.name.toLowerCase().includes(search.toLowerCase())
+  )
+
   return (
     <div className="flex flex-1 flex-col items-center px-6 py-12">
       <div className="w-full max-w-2xl flex flex-col gap-10">
 
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold tracking-tight">Groups</h1>
+          <h1
+            className="text-3xl font-bold tracking-tight"
+            style={{ fontFamily: 'var(--font-display)', letterSpacing: '-0.02em' }}
+          >
+            Groups
+          </h1>
           <button
             onClick={() => setShowForm(v => !v)}
             className="rounded-full px-4 py-1.5 text-sm font-semibold"
@@ -52,6 +62,17 @@ export default function GroupsPage() {
             New Group
           </button>
         </div>
+
+        {!loading && groups.length > 0 && (
+          <input
+            type="search"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search groups…"
+            className="rounded border px-3 py-1.5 text-sm outline-none w-full"
+            style={{ borderColor: 'var(--border)', background: 'var(--surface)', color: 'var(--foreground)' }}
+          />
+        )}
 
         {showForm && (
           <form onSubmit={handleCreate} className="flex gap-2">
@@ -80,9 +101,13 @@ export default function GroupsPage() {
           </p>
         )}
 
-        {!loading && groups.length > 0 && (
+        {!loading && groups.length > 0 && filteredGroups.length === 0 && (
+          <p className="text-sm" style={{ color: 'var(--muted)' }}>No groups match &ldquo;{search}&rdquo;.</p>
+        )}
+
+        {!loading && filteredGroups.length > 0 && (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {groups.map(g => (
+            {filteredGroups.map(g => (
               <a
                 key={g.id}
                 href={`/groups/${g.id}`}

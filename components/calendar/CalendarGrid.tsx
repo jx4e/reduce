@@ -98,6 +98,8 @@ export default function CalendarGrid({ year, month, events, onDayClick, onEventC
               style={{
                 padding: '6px 8px',
                 minHeight: 80,
+                minWidth: 0,
+                overflow: 'hidden',
                 borderRight: (i + 1) % 7 === 0 ? 'none' : '1px solid var(--border)',
                 borderBottom: i < days.length - 7 ? '1px solid var(--border)' : 'none',
                 background: 'var(--background)',

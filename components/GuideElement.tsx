@@ -108,6 +108,7 @@ export default function GuideElement({ element, guideId }: GuideElementProps) {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onTouchMove={handleTouchEnd}
+      onClick={e => { if (e.metaKey) { e.preventDefault(); openModal('chat') } }}
     >
       <div
         className="py-1 rounded transition-all"

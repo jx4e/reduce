@@ -4,9 +4,10 @@ import { useRef, useState } from 'react'
 
 interface UploadZoneProps {
   onFilesChange: (files: File[]) => void
+  compact?: boolean
 }
 
-export default function UploadZone({ onFilesChange }: UploadZoneProps) {
+export default function UploadZone({ onFilesChange, compact }: UploadZoneProps) {
   const [files, setFiles] = useState<File[]>([])
   const [dragging, setDragging] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -28,7 +29,7 @@ export default function UploadZone({ onFilesChange }: UploadZoneProps) {
         setDragging(false)
         handleFiles(e.dataTransfer.files)
       }}
-      className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-8 py-12 text-center transition-colors"
+      className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed text-center transition-colors ${compact ? 'px-4 py-5' : 'px-8 py-12'}`}
       style={{
         borderColor: dragging ? 'var(--accent)' : 'var(--border)',
         background: dragging ? 'rgba(99,102,241,0.05)' : 'var(--surface)',

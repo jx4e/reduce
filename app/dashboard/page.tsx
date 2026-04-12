@@ -89,14 +89,14 @@ export default function DashboardPage() {
 
       {/* Stats row */}
       <div
-        className="grid grid-cols-5 gap-px mb-10 rounded-lg overflow-hidden"
+        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-px mb-10 rounded-lg overflow-hidden [&>*:last-child]:col-span-2 sm:[&>*:last-child]:col-span-1"
         style={{ background: 'var(--border)' }}
       >
         {stats.map(stat => {
           const inner = (
             <div className="flex flex-col gap-1">
               <span
-                className="text-3xl font-bold tracking-tight"
+                className="text-2xl sm:text-3xl font-bold tracking-tight"
                 style={{ fontFamily: 'var(--font-display)', color: 'var(--foreground)' }}
               >
                 {stat.value}
@@ -112,8 +112,8 @@ export default function DashboardPage() {
               <Link
                 key={stat.label}
                 href={stat.href}
-                className="group flex items-center justify-between px-6 py-5 transition-colors"
-                style={{ background: 'var(--background)' }}
+                className="group flex items-center justify-between px-4 py-4 sm:px-6 sm:py-5 transition-colors"
+                style={{ background: 'var(--surface)' }}
               >
                 {inner}
                 <span
@@ -129,8 +129,8 @@ export default function DashboardPage() {
           return (
             <div
               key={stat.label}
-              className="flex items-center px-6 py-5"
-              style={{ background: 'var(--background)' }}
+              className="flex items-center px-4 py-4 sm:px-6 sm:py-5"
+              style={{ background: 'var(--surface)' }}
             >
               {inner}
             </div>
@@ -229,7 +229,7 @@ export default function DashboardPage() {
               <button
                 onClick={handleGenerate}
                 disabled={files.length === 0}
-                className="w-full rounded py-2 text-sm font-semibold transition-opacity disabled:opacity-40"
+                className="w-full rounded-full py-2 text-sm font-semibold transition-opacity disabled:opacity-40"
                 style={{ background: 'var(--accent)', color: '#fff' }}
               >
                 Generate Guide →

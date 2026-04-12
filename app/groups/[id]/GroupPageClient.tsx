@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import GuideCard from '@/components/GuideCard'
 import UploadZone from '@/components/UploadZone'
+import GenerateAdvancedOptions from '@/components/GenerateAdvancedOptions'
 import { setPending } from '@/lib/pendingGeneration'
 import type { ProjectDetail, ProjectFile } from '@/types/project'
 import type { GuideMode } from '@/types/guide'
@@ -15,6 +16,7 @@ export default function GroupPageClient({ projectId }: { projectId: string }) {
   const [newFiles, setNewFiles] = useState<File[]>([])
   const [mode, setMode] = useState<GuideMode>('math-cs')
   const [uploading, setUploading] = useState(false)
+  const [advanced, setAdvanced] = useState({ description: '', customTitle: '' })
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -68,6 +70,7 @@ export default function GroupPageClient({ projectId }: { projectId: string }) {
       mode,
       projectId,
       storedFileIds: Array.from(selectedFileIds),
+      ...advanced,
     })
     router.push('/generate')
   }
@@ -211,6 +214,8 @@ export default function GroupPageClient({ projectId }: { projectId: string }) {
                 ))}
               </div>
             </div>
+
+            <GenerateAdvancedOptions onChange={setAdvanced} />
 
             <button
               onClick={handleGenerate}

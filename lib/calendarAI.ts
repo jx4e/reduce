@@ -1,13 +1,16 @@
 // lib/calendarAI.ts
-import { getClient } from '@/lib/anthropic'
+import { getClient, type ContentBlock } from '@/lib/anthropic'
 import type { CandidateEvent } from '@/types/calendar'
 
-export async function extractDatesFromText(text: string): Promise<{
+export async function extractDatesFromText(input: string | ContentBlock): Promise<{
   events: CandidateEvent[]
   inputTokens: number
   outputTokens: number
 }> {
   const client = getClient()
+  // Anthropic SDK accepts string or array of content blocks
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const messageContent: any = typeof input === 'string' ? input : [input]
   const response = await client.messages.create({
     model: 'claude-sonnet-4-6',
     max_tokens: 1024,
@@ -18,7 +21,7 @@ Return ONLY a valid JSON array. Each item must have:
 - "type": one of "exam", "assignment", or "other"
 
 If the year is ambiguous, assume the current or next upcoming year. Return [] if no dates found.`,
-    messages: [{ role: 'user', content: text }],
+    messages: [{ role: 'user', content: messageContent }],
   })
 
   const content = response.content[0]

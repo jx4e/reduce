@@ -1,7 +1,7 @@
 // components/guide/GuideChatPanel.tsx
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useGuideChat } from '@/hooks/useGuideChat'
 import { MarkdownContent } from '@/components/elements'
 import { useResizable } from '@/hooks/useResizable'
@@ -18,6 +18,21 @@ export function GuideChatPanel({ guide, mobileOpen, onMobileClose }: GuideChatPa
   const { width, isDragging, handlePointerDown, handlePointerMove, handlePointerUp } = useResizable(300)
   const [desktopOpen, setDesktopOpen] = useState(false)
   const mobileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'l' && e.metaKey && !e.shiftKey) {
+        e.preventDefault()
+        setDesktopOpen(open => {
+          const next = !open
+          if (next) setTimeout(() => inputRef.current?.focus(), 50)
+          return next
+        })
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [inputRef])
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === 'Enter' && !e.shiftKey) {

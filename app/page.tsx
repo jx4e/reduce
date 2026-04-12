@@ -6,7 +6,7 @@ import { HeroItem, FadeUp } from '@/components/LandingAnimations'
 
 export default async function LandingPage() {
   const session = await auth()
-  if (session) redirect('/app')
+  if (session) redirect('/dashboard')
 
   return (
     <div className="flex flex-1 flex-col">
@@ -19,21 +19,21 @@ export default async function LandingPage() {
             className="text-xs font-semibold tracking-widest uppercase mb-8"
             style={{ color: 'var(--muted)' }}
           >
-            AI study guides
+            tl;dr
           </div>
         </HeroItem>
 
         <HeroItem delay={0.1}>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(42px, 7vw, 76px)', fontWeight: 800, lineHeight: 1.05, letterSpacing: '-0.02em', marginBottom: '1.25rem', maxWidth: '680px' }}>
-            upload your notes.<br />
-            <em>get the tldr.</em>
+            study less.<br />
+            <em>remember more.</em>
           </h1>
         </HeroItem>
 
         <HeroItem delay={0.2}>
           <p style={{ fontSize: 17, color: 'var(--muted)', maxWidth: 400, lineHeight: 1.65, marginBottom: '2.25rem' }}>
-            Drop in your lecture notes, slides, or PDFs — get a structured,
-            interactive study guide back in seconds.
+            AI turns your lecture notes into a structured guide
+            you&apos;ll actually read.
           </p>
         </HeroItem>
 

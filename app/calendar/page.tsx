@@ -80,7 +80,7 @@ export default function CalendarPage() {
           </span>
           <a
             href="/api/calendar/gcal/connect"
-            className="text-sm font-semibold px-4 py-1.5 rounded"
+            className="text-sm font-semibold px-4 py-1.5 rounded-full"
             style={{ background: 'var(--accent)', color: '#fff' }}
           >
             Connect →
@@ -125,14 +125,14 @@ export default function CalendarPage() {
           )}
           <button
             onClick={() => setImportModal(true)}
-            className="text-sm font-medium px-4 py-1.5 rounded-lg transition-opacity hover:opacity-80"
+            className="text-sm font-medium px-4 py-1.5 rounded-full transition-opacity hover:opacity-80"
             style={{ border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)' }}
           >
             ↑ Import syllabus
           </button>
           <button
             onClick={() => setAddModal({ open: true })}
-            className="text-sm font-semibold px-4 py-1.5 rounded-lg transition-opacity hover:opacity-80"
+            className="text-sm font-semibold px-4 py-1.5 rounded-full transition-opacity hover:opacity-80"
             style={{ background: 'var(--accent)', color: '#fff' }}
           >
             + Add event
