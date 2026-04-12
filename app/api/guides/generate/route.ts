@@ -187,6 +187,8 @@ export async function POST(request: NextRequest): Promise<Response> {
 
         const client = getClient()
         let rawText = ''
+        let usageInputTokens = 0
+        let usageOutputTokens = 0
         try {
           const claudeStream = client.messages.stream({
             model: 'claude-sonnet-4-6',
@@ -218,10 +220,12 @@ export async function POST(request: NextRequest): Promise<Response> {
           })
 
           const finalMessage = await claudeStream.finalMessage()
+          usageInputTokens = finalMessage.usage.input_tokens
+          usageOutputTokens = finalMessage.usage.output_tokens
           log.info({
             stop_reason: finalMessage.stop_reason,
-            input_tokens: finalMessage.usage.input_tokens,
-            output_tokens: finalMessage.usage.output_tokens,
+            input_tokens: usageInputTokens,
+            output_tokens: usageOutputTokens,
           }, 'Claude finished')
         } catch (err) {
           const message = err instanceof Error ? err.message : 'AI service error'
@@ -303,8 +307,8 @@ export async function POST(request: NextRequest): Promise<Response> {
           data: {
             userId: session.user!.id,
             operation: 'generate',
-            inputTokens: finalMessage.usage.input_tokens,
-            outputTokens: finalMessage.usage.output_tokens,
+            inputTokens: usageInputTokens,
+            outputTokens: usageOutputTokens,
           },
         }).catch(err => log.warn({ err }, 'failed to record token usage'))
 
